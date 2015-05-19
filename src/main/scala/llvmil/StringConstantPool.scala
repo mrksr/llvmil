@@ -11,7 +11,7 @@ class StringConstantPool {
   private var nextIndex: Int = 0
 
   def apply(const: String): Identifier = strings.getOrElse(const, {
-    val vlue = Global("%s%d".format(prefix,nextIndex))
+    val vlue = Global(TString, "%s%d".format(prefix,nextIndex))
     nextIndex += 1
     strings += (const -> vlue)
 

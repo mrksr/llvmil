@@ -1,23 +1,14 @@
 package llvmil
 
 import Types._
+import scala.language.implicitConversions
 
 object ILInstructions {
   sealed trait ILInstruction
-  type ILInstructionGenerator = (Method => Method)
 
-  object Const {
-    def apply(s: String): ILInstructionGenerator = ((mtd: Method) => {
-      mtd << mtd.scp(s)
-      mtd
-    })
-
-    def apply(i: Int) = IConst(i)
-  }
-
-  // Internals
   case class Label(name: String) extends ILInstruction
   case class Assign(to: Identifier, rhs: ILOperation) extends ILInstruction
+  case class Store(value: Identifier, to: Identifier) extends ILInstruction
 
   // Flow Control
   case object RetVoid extends ILInstruction
@@ -25,30 +16,86 @@ object ILInstructions {
   case class BrCond(cond: Identifier, iftrue: String, iffalse: String) extends ILInstruction
   case class Br(dest: String) extends ILInstruction
 
-  sealed trait ILOperation
+  sealed class ILOperation(val retType: Type)
+
+  type ILOperationPipeline = (Method => Option[Identifier])
+  case class ILOperationChain(pipe: ILOperationPipeline) {
+    def >>(rhs: Identifier => ILInstruction) =
+      ILOperationChain(((mtd: Method) => {
+        pipe(mtd) match {
+          case Some(id) => {
+            mtd append rhs(id)
+            None
+          }
+          case None => ???
+        }
+      }))
+
+    def >|(rhs: Identifier => ILOperation) =
+      ILOperationChain(((mtd: Method) => {
+        pipe(mtd) match {
+          case Some(id) => {
+            val op = rhs(id)
+
+            val next = Local(op.retType, mtd.getFreshName())
+            mtd append Assign(id, op)
+            Some(id)
+          }
+          case None => ???
+        }
+      }))
+
+    def |:(mtd: Method) = mtd append pipe
+    def |:(op: ILOperation) = op ::: this
+
+    def :::(lhs: ILOperationChain) = ILOperationChain((mtd: Method) => {
+      lhs.pipe(mtd)
+      this.pipe(mtd)
+    })
+  }
+  implicit def singleOpToChain(op: ILOperation): ILOperationChain =
+    ILOperationChain(((mtd: Method) => {
+      val id = Local(op.retType, mtd.getFreshName())
+      mtd append Assign(id, op)
+      Some(id)
+    }))
+  implicit def chainToPipeline(pipe: ILOperationChain): ILOperationPipeline = pipe.pipe
+
+  object Const {
+    def apply(s: String)(implicit mtd: Method) = mtd.scp(s)
+    def apply(i: Int) = IConst(TInt, i)
+  }
+
   // Values identified by Strings of some sort.
-  sealed trait Identifier(tpe: Type, name: String) extends ILOperation
-  case class Local(tpe: Type, name: String) extends Value(tpe, '%' + name)
-  case class Global(tpe: Type, name: String) extends Value(tpe, '@' + name)
-  case class IConst(i: Int) extends Value(TInt, i.toString)
-  case class Bitcast(to: Type, id: Identifier) extends Value(to, id.name)
+  sealed class Identifier(tpe: Type, val name: String) extends ILOperation(tpe)
+  case class Local(tpe: Type, nme: String) extends Identifier(tpe, '%' + nme)
+  case class Global(tpe: Type, nme: String) extends Identifier(tpe, '@' + nme)
+  case class IConst(tpe: TInteger, i: Int) extends Identifier(tpe, i.toString)
+  case class Bitcast(to: Type, id: Identifier) extends Identifier(to, id.name)
 
   // Arithmetics
-  case class Add(lhs: Identifier, rhs: Identifier) extends ILOperation
-  case class Sub(lhs: Identifier, rhs: Identifier) extends ILOperation
-  case class Mul(lhs: Identifier, rhs: Identifier) extends ILOperation
-  case class UDiv(lhs: Identifier, rhs: Identifier) extends ILOperation
-  case class SDiv(lhs: Identifier, rhs: Identifier) extends ILOperation
+  case class Add(lhs: Identifier, rhs: Identifier) extends ILOperation(lhs.retType)
+  case class Sub(lhs: Identifier, rhs: Identifier) extends ILOperation(lhs.retType)
+  case class Mul(lhs: Identifier, rhs: Identifier) extends ILOperation(lhs.retType)
+  case class UDiv(lhs: Identifier, rhs: Identifier) extends ILOperation(lhs.retType)
+  case class SDiv(lhs: Identifier, rhs: Identifier) extends ILOperation(lhs.retType)
 
   // Memory
-  case class Alloca(tpe: Type) extends ILOperation
-  case class Load(ptr: Identifier) extends ILOperation
-  case class Store(value: Identifier, to: Identifier) extends ILOperation
-  case class GetElementPtr(ptr: Identifier, idxs: List[Int]) extends ILOperation
+  case class Alloca(tpe: Type) extends ILOperation(TPointer(tpe))
+  case class Load(ptr: Identifier) extends ILOperation({
+    val TPointer(inner) = ptr.retType
+    inner
+  })
+
+  //TODO(mrksr): Implement the Type derivation
+  // case class GetElementPtr(ptr: Identifier, idxs: List[Int]) extends ILOperation(TVoid)
 
   // OOP
-  case class VirtualResolve(obj: Identifier, name: String, args: List[Type], retTpe: Type) extends ILOperation
-  case class AccessField(obj: Identifier, name: String) ILOperation
-  case class Call(func: Identifier, args: List[Identifier]) extends ILInstruction
-
+  case class VirtualResolve(obj: Identifier, name: String, args: List[Type], retTpe: Type)
+    extends ILOperation(TFunction(args, retTpe))
+  case class AccessField(obj: Identifier, name: String, tpe: Type) extends ILOperation(tpe)
+  case class Call(func: Identifier, args: List[Identifier]) extends ILOperation({
+    val TFunction(_, ret) = func.retType
+    ret
+  })
 }

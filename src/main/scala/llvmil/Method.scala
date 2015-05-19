@@ -12,14 +12,13 @@ class Method private[llvmil]( val name: String,
                             ) {
   var instructions: mutable.ListBuffer[ILInstruction] = mutable.ListBuffer.empty
 
-  def <<(ilGen: ILInstructionGenerator): Method = {
+  def append(ilGen: ILOperationPipeline): Option[Identifier] = {
     ilGen(this)
   }
 
-  def <<(il: ILInstruction): Method = {
+  def append(il: ILInstruction): Option[Identifier] = {
     instructions += il
-
-    this
+    None
   }
 
   private var labelCounts = new mutable.HashMap[String, Int]
@@ -28,19 +27,19 @@ class Method private[llvmil]( val name: String,
       labelCounts(prefix) = 0
       0
     })
-    val name = "%s.%d".format(prefix, postfix)
+    val name = "%s%d".format(prefix, postfix)
     labelCounts(prefix) = postfix + 1
     name
   }
 
   private var nameCounts = new mutable.HashMap[String, Int]
-  def getFreshLocal(prefix: String): Local = {
+  def getFreshName(prefix: String = ""): String = {
     val postfix: Int = nameCounts.getOrElse(prefix, {
       nameCounts(prefix) = 0
       0
     })
-    val name = "%s.%d".format(prefix, postfix)
+    val name = "%s%d".format(prefix, postfix)
     nameCounts(prefix) = postfix + 1
-    Local(name)
+    name
   }
 }
