@@ -15,32 +15,40 @@ object ILInstructions {
     def apply(i: Int) = IConst(i)
   }
 
+  // Internals
   case class Label(name: String) extends ILInstruction
+  case class Assign(to: Identifier, rhs: ILOperation) extends ILInstruction
 
-  sealed trait Identifier extends ILInstruction
-  case class Local(name: String) extends Identifier
-  case class Global(name: String) extends Identifier
-  case class IConst(i: Int) extends Identifier
-
-  // NOTE(mrksr): Is this sensible?
-  case class Assign(id: Identifier, rhs: ILInstruction)
-
-  case class Add(tpe: Type, lhs: Identifier, rhs: Identifier)
-  case class Sub(tpe: Type, lhs: Identifier, rhs: Identifier)
-  case class Mul(tpe: Type, lhs: Identifier, rhs: Identifier)
-  case class UDiv(tpe: Type, lhs: Identifier, rhs: Identifier)
-  case class SDiv(tpe: Type, lhs: Identifier, rhs: Identifier)
-
+  // Flow Control
   case object RetVoid extends ILInstruction
-  case class Ret(tpe: Type, id: Identifier) extends ILInstruction
+  case class Ret(id: Identifier) extends ILInstruction
   case class BrCond(cond: Identifier, iftrue: String, iffalse: String) extends ILInstruction
   case class Br(dest: String) extends ILInstruction
 
-  // NOTE(mrksr): Need Identifier for assigment here?
-  case class VirtualResolve(obj: (Type, Identifier), name: String, args: List[Type], retTpe: Type) extends ILInstruction
-  case class AccessField(obj: (Type, Identifier), name: String)
+  sealed trait ILOperation
+  // Values identified by Strings of some sort.
+  sealed trait Identifier(tpe: Type, name: String) extends ILOperation
+  case class Local(tpe: Type, name: String) extends Value(tpe, '%' + name)
+  case class Global(tpe: Type, name: String) extends Value(tpe, '@' + name)
+  case class IConst(i: Int) extends Value(TInt, i.toString)
+  case class Bitcast(to: Type, id: Identifier) extends Value(to, id.name)
 
-  case class Call(tpe: Type, fnptr: Identifier, args: List[(Type, Identifier)]) extends ILInstruction
+  // Arithmetics
+  case class Add(lhs: Identifier, rhs: Identifier) extends ILOperation
+  case class Sub(lhs: Identifier, rhs: Identifier) extends ILOperation
+  case class Mul(lhs: Identifier, rhs: Identifier) extends ILOperation
+  case class UDiv(lhs: Identifier, rhs: Identifier) extends ILOperation
+  case class SDiv(lhs: Identifier, rhs: Identifier) extends ILOperation
 
-  // FIXME(mrksr): More Stuff
+  // Memory
+  case class Alloca(tpe: Type) extends ILOperation
+  case class Load(ptr: Identifier) extends ILOperation
+  case class Store(value: Identifier, to: Identifier) extends ILOperation
+  case class GetElementPtr(ptr: Identifier, idxs: List[Int]) extends ILOperation
+
+  // OOP
+  case class VirtualResolve(obj: Identifier, name: String, args: List[Type], retTpe: Type) extends ILOperation
+  case class AccessField(obj: Identifier, name: String) ILOperation
+  case class Call(func: Identifier, args: List[Identifier]) extends ILInstruction
+
 }
