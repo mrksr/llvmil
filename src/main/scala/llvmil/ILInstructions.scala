@@ -19,7 +19,7 @@ object ILInstructions {
   sealed class ILOperation(val retType: Type)
 
   type ILOperationPipeline = (Method => Option[Identifier])
-  case class ILOperationChain(pipe: ILOperationPipeline) {
+  case class ILOperationChain private[ILInstructions](pipe: ILOperationPipeline) {
     def >>(rhs: Identifier => ILInstruction) =
       ILOperationChain(((mtd: Method) => {
         pipe(mtd) match {
@@ -49,8 +49,8 @@ object ILInstructions {
     def |:(op: ILOperation) = op ::: this
 
     def :::(lhs: ILOperationChain) = ILOperationChain((mtd: Method) => {
-      lhs.pipe(mtd)
-      this.pipe(mtd)
+      mtd append lhs.pipe
+      mtd append this.pipe
     })
   }
   implicit def singleOpToChain(op: ILOperation): ILOperationChain =
