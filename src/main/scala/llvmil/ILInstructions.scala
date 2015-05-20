@@ -82,14 +82,15 @@ object ILInstructions {
         }
       }))
 
-    def |:(mtd: Method) = mtd append pipe
     def |:(op: ILOperation) = op ::: this
+    def |:(lhs: ILOperationChain) = lhs ::: this
 
     def :::(lhs: ILOperationChain) = ILOperationChain((mtd: Method) => {
       mtd append lhs.pipe
       mtd append this.pipe
     })
   }
+
   implicit def singleOpToChain(op: ILOperation): ILOperationChain =
     ILOperationChain(((mtd: Method) => {
       val id = Local(op.retType, mtd.getFreshName())
