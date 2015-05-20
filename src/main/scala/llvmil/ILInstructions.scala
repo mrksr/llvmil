@@ -85,7 +85,7 @@ object ILInstructions {
     def |:(op: ILOperation) = op ::: this
     def |:(lhs: ILOperationChain) = lhs ::: this
 
-    def :::(lhs: ILOperationChain) = ILOperationChain((mtd: Method) => {
+    private def :::(lhs: ILOperationChain) = ILOperationChain((mtd: Method) => {
       mtd append lhs.pipe
       mtd append this.pipe
     })
