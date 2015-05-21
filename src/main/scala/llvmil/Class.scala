@@ -14,7 +14,7 @@ class Class private[llvmil]( val className: String,
   }
 
   lazy val classType: TStruct = {
-    val vTableField = TVTable(vTable.length)
+    val vTableField = TPointer(TVTable(vTable.length))
     val ownFields = fields.map(_._1)
     val parentFields = parentName.map(prog.classes).map(_.classType) match {
       case None => Nil
