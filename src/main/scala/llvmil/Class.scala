@@ -13,17 +13,20 @@ class Class private[llvmil]( val className: String,
     parentMethods ::: methods.filter(_._2.isEmpty).map(_._1)
   }
 
+  lazy val allFieldTypes: List[Type] = {
+    val ownFields = fields.map(_._1)
+    val parentFields =
+      parentName.map(prog.classes).map(_.allFieldTypes).getOrElse(Nil)
+
+    parentFields ::: ownFields
+  }
+
   lazy val classType: TStruct = {
     val vTableField = TPointer(TVTable(vTable.length))
-    val ownFields = fields.map(_._1)
-    val parentFields = parentName.map(prog.classes).map(_.classType) match {
-      case None => Nil
-      case Some(TStruct(_, fields)) => fields
-    }
 
     TStruct(
       "%s%s".format(Prefixes.classType, className),
-      vTableField :: parentFields ::: ownFields
+      vTableField :: allFieldTypes
     )
   }
 
