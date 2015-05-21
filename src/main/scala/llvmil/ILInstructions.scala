@@ -110,8 +110,8 @@ object ILInstructions {
       fnc append Assign(id, op)
       Some(id)
     }))
-  implicit def chainToPipeline(pipe: ILOperationChain): ILOperationPipeline = pipe.pipe
+  implicit def chainToPipeline(pipe: ILOperationChain): ILOperationPipeline =
     pipe.pipe
-  implicit def singleOpToPipeline(op: ILOperation): ILOperationPipeline = chainToPipeline(singleOpToChain(op))
+  implicit def singleOpToPipeline(op: ILOperation): ILOperationPipeline =
     chainToPipeline(singleOpToChain(op))
 }
