@@ -56,8 +56,8 @@ object ILInstructions {
   })
 
   type ILOperationPipeline = (Method => Option[Identifier])
-  case class ILOperationChain private[ILInstructions](pipe: ILOperationPipeline) {
-    def >>(rhs: Identifier => ILInstruction): ILOperationPipeline =
+  sealed case class ILOperationChain private[ILInstructions](pipe: ILOperationPipeline) {
+    def +>(rhs: Identifier => ILInstruction): ILOperationPipeline =
       ((mtd: Method) => {
         pipe(mtd) match {
           case Some(id) => {
@@ -68,7 +68,7 @@ object ILInstructions {
         }
       })
 
-    def >|(rhs: Identifier => ILOperation) =
+    def ++(rhs: Identifier => ILOperation) =
       ILOperationChain(((mtd: Method) => {
         pipe(mtd) match {
           case Some(id) => {
@@ -82,9 +82,9 @@ object ILInstructions {
         }
       }))
 
-    def |:(op: ILOperation) = op ::: this
-    def |:(lhs: ILOperationChain) = lhs ::: this
-    def |:(lhs: ILOperationPipeline) = ILOperationChain(lhs) ::: this
+    def ::(op: ILOperation) = op ::: this
+    def ::(lhs: ILOperationChain) = lhs ::: this
+    def ::(lhs: ILOperationPipeline) = ILOperationChain(lhs) ::: this
 
     private def :::(lhs: ILOperationChain) = ILOperationChain((mtd: Method) => {
       mtd append lhs.pipe
