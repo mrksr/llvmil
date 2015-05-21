@@ -13,11 +13,14 @@ object ILPrinter {
   }
 
   def strings(implicit prog: Program) = {
+    import java.text.Normalizer
+
     prog.sp.allStrings.map({
       case (string, identifier) =>
-        // TODO(mrksr): Non-Ascii Unicode characters
+        val normalized = Normalizer.normalize(string, Normalizer.Form.NFD)
+        val ascii = normalized.replaceAll("[^\\p{ASCII}]", "")
         "%s = internal constant [%d x i8] c\"%s\\00\"".format(
-          identifier.name, string.length + 1, string
+          identifier.name, ascii.length + 1, ascii
         )
     }).toStream
   }
