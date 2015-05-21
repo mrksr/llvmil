@@ -13,11 +13,9 @@ class Method private[llvmil]( val name: String,
   def string(const: String) = sp.string(const)
 
   var instructions: mutable.ListBuffer[ILInstruction] = mutable.ListBuffer.empty
-
   def append(ilGen: ILOperationPipeline): Option[Identifier] = {
     ilGen(this)
   }
-
   def append(il: ILInstruction): Option[Identifier] = {
     instructions += il
     None
