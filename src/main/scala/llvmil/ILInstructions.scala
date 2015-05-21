@@ -88,7 +88,7 @@ object ILInstructions {
 
             val next = Local(op.retType, fnc.getFreshName())
             fnc append Assign(id, op)
-            Some(id)
+            Some(next)
           }
           case None => ???
         }
