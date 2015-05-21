@@ -15,7 +15,7 @@ object Types {
   }
   case class TStruct(name: String, fields: List[Type]) extends Type {
     def toIL = "%%%s%s".format(Prefixes.struct, name)
-    def declaration() = "%s = { %s }".format(toIL, fields.map(_.toIL).mkString(", "))
+    def declaration = "%s = { %s }".format(toIL, fields.map(_.toIL).mkString(", "))
   }
   case class TFunction(args: List[Type], retTpe: Type) extends Type {
     def toIL = "%s (%s)".format(retTpe.toIL, args.map(_.toIL).mkString(", "))
