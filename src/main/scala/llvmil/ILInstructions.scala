@@ -6,11 +6,12 @@ import scala.language.implicitConversions
 object ILInstructions {
   sealed trait ILInstruction
 
-  case class Label(name: String) extends ILInstruction
+  // Variables
   case class Assign(to: Identifier, rhs: ILOperation) extends ILInstruction
   case class Store(value: Identifier, to: Identifier) extends ILInstruction
 
   // Flow Control
+  case class Label(name: String) extends ILInstruction
   case object RetVoid extends ILInstruction
   case class Ret(id: Identifier) extends ILInstruction
   case class BrCond(cond: Identifier, iftrue: String, iffalse: String) extends ILInstruction
@@ -22,6 +23,7 @@ object ILInstructions {
   case class Local(tpe: Type, nme: String) extends Identifier(tpe, '%' + nme)
   case class Global(tpe: Type, nme: String) extends Identifier(tpe, '@' + nme)
   case class IConst(tpe: TInteger, i: Int) extends Identifier(tpe, i.toString)
+
   case class Bitcast(to: Type, id: Identifier) extends Identifier(to, id.name)
   case class PtrToIntCast(to: TInteger, id: Identifier) extends Identifier(to, id.name)
 
@@ -37,7 +39,14 @@ object ILInstructions {
   case class Div(lhs: Identifier, rhs: Identifier) extends ILOperation(lhs.retType)
 
   // Comparisons
-  case class Icmp(op: ???, lhs: Identifier, rhs: Identifier) extends ILOperation(TBool)
+  sealed trait Comparison
+  case object eq extends Comparison
+  case object ne extends Comparison
+  case object sgt extends Comparison
+  case object sge extends Comparison
+  case object slt extends Comparison
+  case object sle extends Comparison
+  case class Icmp(op: Comparison, lhs: Identifier, rhs: Identifier) extends ILOperation(TBool)
 
   // Memory
   case class Alloca(tpe: Type) extends ILOperation(TPointer(tpe))
@@ -102,5 +111,7 @@ object ILInstructions {
       Some(id)
     }))
   implicit def chainToPipeline(pipe: ILOperationChain): ILOperationPipeline = pipe.pipe
+    pipe.pipe
   implicit def singleOpToPipeline(op: ILOperation): ILOperationPipeline = chainToPipeline(singleOpToChain(op))
+    chainToPipeline(singleOpToChain(op))
 }
