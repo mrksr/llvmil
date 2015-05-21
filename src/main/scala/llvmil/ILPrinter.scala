@@ -34,11 +34,16 @@ object ILPrinter {
     }).toStream
   }
 
-  def types(prog: Program) = {
-    prog.classes.map({
-      case (name, cls) =>
-        cls.classType.declaration()
-    }).toStream
+  def types(prog: Program): Stream[String] = {
+    val internals = Stream(TString.declaration, TIntArray.declaration)
+
+    val classTypes =
+      prog.classes.map({
+        case (name, cls) =>
+          cls.classType.declaration
+      }).toStream
+
+    internals append br append classTypes
   }
 
   def functions(prog: Program): Stream[String] = {
