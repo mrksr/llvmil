@@ -2,15 +2,15 @@ package llvmil
 
 import Prefixes._
 import ILInstructions._
+import Types._
 
 object ILPrinter {
   private val br = Stream("")
 
   def apply(prog: Program): Stream[String] = {
-
-    strings(prog) append
-    br append
     types(prog) append
+    br append
+    strings(prog) append
     br append
     functions(prog)
   }
