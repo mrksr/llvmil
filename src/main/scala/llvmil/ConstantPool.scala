@@ -21,4 +21,6 @@ private[llvmil] class StringPool extends ConstantPool {
 
     vlue
   })
+
+  def allStrings = strings.toMap
 }
