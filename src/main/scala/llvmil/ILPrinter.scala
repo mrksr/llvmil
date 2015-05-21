@@ -44,7 +44,7 @@ object ILPrinter {
   def functions(prog: Program): Stream[String] = {
     def function(className: Option[String])(fnc: Function): Stream[String] = {
       val name = "@%s".format(mangledFunctionName(className, fnc.name))
-      val args = fnc.args.map({ case (t, n) => "%s %%s".format(t.toIL, n) }).mkString(", ")
+      val args = fnc.args.map({ case (t, n) => "%s %%%s".format(t.toIL, n) }).mkString(", ")
 
       val head = "define %s %s (%s) {".format(fnc.retTpe.toIL, name, args)
       val foot = "}"
