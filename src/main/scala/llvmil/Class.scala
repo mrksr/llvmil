@@ -4,7 +4,7 @@ import Types._
 
 class Class private[llvmil]( val className: String,
                              val parentName: Option[String],
-                             val scp: StringConstantPool
+                             sp: StringPool
                            ) {
   var fields: List[(Type, String)] = Nil
   var methods: List[Method] = Nil
@@ -14,7 +14,7 @@ class Class private[llvmil]( val className: String,
   }
 
   def addMethod(name: String, args: List[(Type, String)], retTpe: Type): Method = {
-    val mtd = new Method(name, args, retTpe, scp)
+    val mtd = new Method(name, args, retTpe, sp)
     methods = methods ::: (mtd :: Nil)
 
     mtd

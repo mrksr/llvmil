@@ -8,8 +8,10 @@ import scala.collection.mutable
 class Method private[llvmil]( val name: String,
                               val args: List[(Type, String)],
                               val retTpe: Type,
-                              val scp: StringConstantPool
-                            ) {
+                              sp: StringPool
+                            ) extends ConstantPool {
+  def string(const: String) = sp.string(const)
+
   var instructions: mutable.ListBuffer[ILInstruction] = mutable.ListBuffer.empty
 
   def append(ilGen: ILOperationPipeline): Option[Identifier] = {

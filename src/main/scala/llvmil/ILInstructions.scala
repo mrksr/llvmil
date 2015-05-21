@@ -25,7 +25,7 @@ object ILInstructions {
   case class Bitcast(to: Type, id: Identifier) extends Identifier(to, id.name)
 
   object Const {
-    def apply(s: String)(implicit mtd: Method) = mtd.scp(s)
+    def apply(s: String)(implicit pool: ConstantPool) = pool.string(s)
     def apply(i: Int) = IConst(TInt, i)
   }
 
