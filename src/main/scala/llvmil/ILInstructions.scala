@@ -17,15 +17,15 @@ object ILInstructions {
   case class BrCond(cond: Identifier, iftrue: String, iffalse: String) extends ILInstruction
   case class Br(dest: String) extends ILInstruction
 
-  sealed class ILOperation(val retType: Type)
+  sealed abstract class ILOperation(val retType: Type)
   // Values identified by Strings of some sort.
-  sealed class Identifier(tpe: Type, val name: String) extends ILOperation(tpe)
+  sealed abstract class Identifier(tpe: Type, val name: String) extends ILOperation(tpe)
   case class Local(tpe: Type, nme: String) extends Identifier(tpe, '%' + nme)
   case class Global(tpe: Type, nme: String) extends Identifier(tpe, '@' + nme)
   case class IConst(tpe: TInteger, i: Int) extends Identifier(tpe, i.toString)
 
   case class Bitcast(to: Type, id: Identifier) extends Identifier(to, id.name)
-  case class PtrToIntCast(to: TInteger, id: Identifier) extends Identifier(to, id.name)
+  case class PtrToInt(to: TInteger, id: Identifier) extends Identifier(to, id.name)
 
   object Const {
     def apply(s: String)(implicit pool: ConstantPool) = pool.string(s)
