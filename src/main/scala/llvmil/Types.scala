@@ -29,6 +29,9 @@ object Types {
   case object TVariadic extends Type {
     def toIL = "..."
   }
+  case class TReference(className: String) extends Type {
+    def toIL = "%%%s%s%s *".format(Prefixes.struct, Prefixes.classType, className)
+  }
 
   val TBool = TInteger(1)
   val TInt = TInteger(32)
