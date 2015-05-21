@@ -6,10 +6,10 @@ import ILInstructions._
 import scala.collection.mutable
 
 class Function private[llvmil]( val name: String,
-                              val args: List[(Type, String)],
-                              val retTpe: Type,
-                              sp: StringPool
-                            ) extends ConstantPool {
+                                val args: List[(Type, String)],
+                                val retTpe: Type,
+                                sp: StringPool
+                              ) extends ConstantPool {
   def string(const: String) = sp.string(const)
 
   var instructions: mutable.ListBuffer[ILInstruction] = mutable.ListBuffer.empty
