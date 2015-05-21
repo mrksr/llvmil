@@ -1,13 +1,13 @@
 package llvmil
 
 class Program extends ConstantPool {
-  private val sp: StringPool = new StringPool()
+  private[llvmil] val sp: StringPool = new StringPool()
   def string(const: String) = sp.string(const)
 
-  private var classes: Map[String, Class] = Map()
+  private[llvmil] var classes: Map[String, Class] = Map()
 
   def addClass(className: String, parentName: Option[String]): Class = {
-    val cls = new Class(className, parentName, sp)
+    val cls = new Class(className, parentName, this)
     classes += (className -> cls)
 
     cls
