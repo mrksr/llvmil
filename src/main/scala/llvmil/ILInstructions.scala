@@ -23,6 +23,7 @@ object ILInstructions {
   case class Global(tpe: Type, nme: String) extends Identifier(tpe, '@' + nme)
   case class IConst(tpe: TInteger, i: Int) extends Identifier(tpe, i.toString)
   case class Bitcast(to: Type, id: Identifier) extends Identifier(to, id.name)
+  case class PtrToIntCast(to: TInteger, id: Identifier) extends Identifier(to, id.name)
 
   object Const {
     def apply(s: String)(implicit pool: ConstantPool) = pool.string(s)
@@ -33,8 +34,10 @@ object ILInstructions {
   case class Add(lhs: Identifier, rhs: Identifier) extends ILOperation(lhs.retType)
   case class Sub(lhs: Identifier, rhs: Identifier) extends ILOperation(lhs.retType)
   case class Mul(lhs: Identifier, rhs: Identifier) extends ILOperation(lhs.retType)
-  case class UDiv(lhs: Identifier, rhs: Identifier) extends ILOperation(lhs.retType)
-  case class SDiv(lhs: Identifier, rhs: Identifier) extends ILOperation(lhs.retType)
+  case class Div(lhs: Identifier, rhs: Identifier) extends ILOperation(lhs.retType)
+
+  // Comparisons
+  case class Icmp(op: ???, lhs: Identifier, rhs: Identifier) extends ILOperation(TBool)
 
   // Memory
   case class Alloca(tpe: Type) extends ILOperation(TPointer(tpe))
