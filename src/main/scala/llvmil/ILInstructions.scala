@@ -55,13 +55,13 @@ object ILInstructions {
     ret
   })
 
-  type ILOperationPipeline = (Method => Option[Identifier])
+  type ILOperationPipeline = (Function => Option[Identifier])
   sealed case class ILOperationChain private[ILInstructions](pipe: ILOperationPipeline) {
     def +>(rhs: Identifier => ILInstruction): ILOperationPipeline =
-      ((mtd: Method) => {
-        pipe(mtd) match {
+      ((fnc: Function) => {
+        pipe(fnc) match {
           case Some(id) => {
-            mtd append rhs(id)
+            fnc append rhs(id)
             None
           }
           case None => ???
@@ -69,13 +69,13 @@ object ILInstructions {
       })
 
     def ++(rhs: Identifier => ILOperation) =
-      ILOperationChain(((mtd: Method) => {
-        pipe(mtd) match {
+      ILOperationChain(((fnc: Function) => {
+        pipe(fnc) match {
           case Some(id) => {
             val op = rhs(id)
 
-            val next = Local(op.retType, mtd.getFreshName())
-            mtd append Assign(id, op)
+            val next = Local(op.retType, fnc.getFreshName())
+            fnc append Assign(id, op)
             Some(id)
           }
           case None => ???
@@ -86,16 +86,16 @@ object ILInstructions {
     def ::(lhs: ILOperationChain) = lhs ::: this
     def ::(lhs: ILOperationPipeline) = ILOperationChain(lhs) ::: this
 
-    private def :::(lhs: ILOperationChain) = ILOperationChain((mtd: Method) => {
-      mtd append lhs.pipe
-      mtd append this.pipe
+    private def :::(lhs: ILOperationChain) = ILOperationChain((fnc: Function) => {
+      fnc append lhs.pipe
+      fnc append this.pipe
     })
   }
 
   implicit def singleOpToChain(op: ILOperation): ILOperationChain =
-    ILOperationChain(((mtd: Method) => {
-      val id = Local(op.retType, mtd.getFreshName())
-      mtd append Assign(id, op)
+    ILOperationChain(((fnc: Function) => {
+      val id = Local(op.retType, fnc.getFreshName())
+      fnc append Assign(id, op)
       Some(id)
     }))
   implicit def chainToPipeline(pipe: ILOperationChain): ILOperationPipeline = pipe.pipe

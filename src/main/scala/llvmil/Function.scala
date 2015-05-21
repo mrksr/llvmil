@@ -5,7 +5,7 @@ import ILInstructions._
 
 import scala.collection.mutable
 
-class Method private[llvmil]( val name: String,
+class Function private[llvmil]( val name: String,
                               val args: List[(Type, String)],
                               val retTpe: Type,
                               sp: StringPool
