@@ -1,18 +1,27 @@
 package llvmil
 
 import Prefixes._
+import ILInstructions._
 
 object ILPrinter {
+  private val br = Stream("")
+
   def apply(prog: Program): Stream[String] = {
-    val br = Stream("")
 
     strings(prog) append
     br append
     types(prog) append
-    br
+    br append
+    functions(prog)
   }
 
-  def strings(implicit prog: Program) = {
+  def mangledFunctionName(className: Option[String], functionName: String) =
+    className match {
+      case None => "%s%s".format(Prefixes.static, functionName)
+      case Some(cls) => "%s%s.%s".format(Prefixes.method, cls, functionName)
+    }
+
+  def strings(prog: Program) = {
     import java.text.Normalizer
 
     prog.sp.allStrings.map({
@@ -25,11 +34,38 @@ object ILPrinter {
     }).toStream
   }
 
-  def types(implicit prog: Program) = {
+  def types(prog: Program) = {
     prog.classes.map({
       case (name, cls) =>
         cls.classType.declaration()
     }).toStream
   }
+
+  def functions(prog: Program): Stream[String] = {
+    def function(className: Option[String])(fnc: Function): Stream[String] = {
+      val name = "@%s".format(mangledFunctionName(className, fnc.name))
+      val args = fnc.args.map({ case (t, n) => "%s %%s".format(t.toIL, n) }).mkString(", ")
+
+      val head = "define %s %s (%s) {".format(fnc.retTpe.toIL, name, args)
+      val foot = "}"
+
+      (Stream(head) /: fnc.instructions.map(instruction))(_ append _) append Stream(foot)
+    }
+
+    def flatten(xs: Iterable[Stream[String]]): Stream[String] =
+      xs.reduceOption(_ append br append _).getOrElse(Stream.empty)
+
+    val statics: Stream[String] = flatten(prog.statics.map(function(None)))
+    val classFunctions: Stream[String] =
+      flatten(
+        prog.classes.values.map(c =>
+            flatten(c.methods.map(_._1).map(function(Some(c.className))))
+            )
+          )
+
+    statics append classFunctions
+  }
+
+  def instruction(il: ILInstruction) = br
 }
 
