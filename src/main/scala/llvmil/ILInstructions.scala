@@ -60,13 +60,19 @@ object ILInstructions {
     inner
   })
 
-  case class GetElementPtr(ptr: Identifier, idxs: List[Int]) extends ILOperation({
+  case class GetElementPtr(ptr: Identifier, idxs: List[Identifier]) extends ILOperation({
     val TPointer(struct) = ptr.retType
-    val inner = (struct /: idxs)({
-      case (struct, idx) =>
-        val TStruct(_, inners) = struct
-        inners(idx)
+    val inner = (struct /: idxs.tail)({
+      case (struct, idx) => struct match {
+        case TStruct(_, inners) =>
+          val IConst(_, i) = idx
+          inners(i)
+
+        case TArray(_, tpe) => tpe
+        case _ => ???
+      }
     })
+
     TPointer(inner)
   })
 
