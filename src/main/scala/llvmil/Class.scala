@@ -33,12 +33,11 @@ class Class private[llvmil]( val className: String,
     parentMethods ::: methods.filter(_._2.isEmpty).map(_._1)
   }
 
-  lazy val allFieldTypes: List[Type] = {
-    val ownFields = fields.map(_._1)
+  lazy val allFields: List[(Type, String)] = {
     val parentFields =
-      parentName.map(prog.classes).map(_.allFieldTypes).getOrElse(Nil)
+      parentName.map(prog.classes).map(_.allFields).getOrElse(Nil)
 
-    parentFields ::: ownFields
+    parentFields ::: fields
   }
 
   lazy val classType: TStruct = {
@@ -46,7 +45,7 @@ class Class private[llvmil]( val className: String,
 
     TStruct(
       "%s%s".format(Prefixes.classType, className),
-      vTableField :: allFieldTypes
+      vTableField :: allFields.map(_._1)
     )
   }
 }
