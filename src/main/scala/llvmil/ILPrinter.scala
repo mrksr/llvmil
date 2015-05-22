@@ -141,8 +141,9 @@ object ILPrinter {
         "call %s %s(%s)".format(to.retType.toIL, identifier(func), argList)
 
       case GetElementPtr(ptr, idxs) =>
-        val indexes = idxs.map(IConst(TInt, _)).map(i => ", %s".format(identifier(i)))
-        "getelementptr %s, %s%s".format(to.retType.toIL, identifier(ptr), indexes.mkString(""))
+        val indexes = idxs.map(i => ", %s".format(identifier(i)))
+        val TPointer(inner) = ptr.retType
+        "getelementptr %s, %s%s".format(inner.toIL, identifier(ptr), indexes.mkString(""))
     }
 
     "%s = %s".format(to.name, toAssign)
