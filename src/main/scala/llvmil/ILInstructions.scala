@@ -22,7 +22,7 @@ object ILInstructions {
   sealed abstract class ILOperation(retType: Type) extends AbstractILOperation(retType) {
     def apply(id: Identifier): AbstractILInstruction = Assign(id, this)
   }
-  //
+
   // Values identified by Strings of some sort.
   sealed abstract class Identifier(tpe: Type, val name: String) extends ILOperation(tpe)
   case class Local(tpe: Type, nme: String) extends Identifier(tpe, '%' + nme)
@@ -70,7 +70,7 @@ object ILInstructions {
     TPointer(inner)
   })
 
-  // OOP
+  // Functions
   case class Call(func: Identifier, args: List[Identifier]) extends ILOperation({
     val TFunction(_, ret) = func.retType
     ret

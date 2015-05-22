@@ -68,8 +68,7 @@ object ILPrinter {
       flatten(
         prog.classes.values.map(c =>
             flatten(c.methods.map(_._1).map(function(Some(c.className))))
-            )
-          )
+      ))
 
     statics append classFunctions
   }
@@ -79,7 +78,7 @@ object ILPrinter {
       "%s:".format(name)
     case RetVoid =>
       "return void"
-    case Ret(id) => 
+    case Ret(id) =>
       "return %s".format(identifier(id))
     case Br(dest) =>
       "br label %s".format(dest)
@@ -138,4 +137,3 @@ object ILPrinter {
     "%s = %s".format(to.name, toAssign)
   }
 }
-
