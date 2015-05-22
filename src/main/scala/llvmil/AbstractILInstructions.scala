@@ -81,7 +81,7 @@ object AbstractILInstructions {
         ( Load(_) ) +>
         ( fnc => Assign(id, Bitcast(TPointer(functionType), fnc)) )
 
-      lookup(nameGen)._1.map(_(prog, nameGen)).flatten
+      lookup(nameGen).map(_(prog, nameGen)).flatten
     }
   }
 
@@ -98,54 +98,87 @@ object AbstractILInstructions {
         GetElementPtr(Bitcast(ptrType, Null), List(Const(1))) +>
         ( size =>  Assign(id, PtrToInt(TInt, size)) )
 
-      lookup(nameGen)._1.map(_(prog, nameGen)).flatten
+      lookup(nameGen).map(_(prog, nameGen)).flatten
     }
   }
 
-  type ILOperationPipeline = (() => String) => (List[AbstractILInstruction], Option[Identifier])
-  sealed case class ILOperationChain private[AbstractILInstructions](pipe: ILOperationPipeline) {
+  type OpenILOperationPipeline = (() => String) => (List[AbstractILInstruction], Identifier)
+  type ClosedILOperationPipeline = (() => String) => List[AbstractILInstruction]
+  sealed case class OpenILOperationChain private[AbstractILInstructions](
+    pipe: OpenILOperationPipeline
+  ) {
     def +>(rhs: Identifier => AbstractILInstruction) =
-      ILOperationChain((nameGen: () => String) => {
-        pipe(nameGen) match {
-          case (li, Some(id)) => {
-            (li :+ rhs(id), None)
-          }
-          case (_, None) => ???
-        }
+      ClosedILOperationChain((nameGen: () => String) => {
+        val (li, id) = pipe(nameGen)
+        li :+ rhs(id)
       })
 
     def ++(rhs: Identifier => AbstractILOperation) =
-      ILOperationChain((nameGen: () => String) => {
-        pipe(nameGen) match {
-          case (li, Some(id)) => {
-            val op = rhs(id)
+      OpenILOperationChain((nameGen: () => String) => {
+        val (li, id) = pipe(nameGen)
+        val op = rhs(id)
 
-            val next = Local(op.retType, nameGen())
-            (li :+ AbstractAssign(next, rhs(id)), Some(next))
-          }
-          case (_, None) => ???
-        }
+        val next = Local(op.retType, nameGen())
+        (li :+ AbstractAssign(next, rhs(id)), next)
       })
 
     def ::(op: AbstractILOperation) = op ::: this
-    def ::(lhs: ILOperationChain) = lhs ::: this
-    def ::(lhs: ILOperationPipeline) = ILOperationChain(lhs) ::: this
+    def ::(lhs: OpenILOperationChain) = lhs ::: this
+    def ::(lhs: ClosedILOperationChain) = lhs ::: this
+    def ::(lhs: OpenILOperationPipeline) = OpenILOperationChain(lhs) ::: this
+    def ::(lhs: ClosedILOperationPipeline)(implicit dummy: DummyImplicit) =
+      ClosedILOperationChain(lhs) ::: this
 
-    private def :::(lhs: ILOperationChain) = ILOperationChain((nameGen: () => String) => {
-      val (ls, _) = lhs.pipe(nameGen)
-      val (rs, rid) = this.pipe(nameGen)
-      (ls ::: rs, rid)
-    })
+    private def :::(lhs: OpenILOperationChain) =
+      OpenILOperationChain((nameGen: () => String) => {
+        val (ls, _) = lhs.pipe(nameGen)
+        val (rs, rid) = this.pipe(nameGen)
+        (ls ::: rs, rid)
+      })
+
+    private def :::(lhs: ClosedILOperationChain) =
+      OpenILOperationChain((nameGen: () => String) => {
+        val ls = lhs.pipe(nameGen)
+        val (rs, rid) = this.pipe(nameGen)
+        (ls ::: rs, rid)
+      })
   }
 
-  implicit def singleAbsOpToChain(op: AbstractILOperation): ILOperationChain =
-    ILOperationChain(((nameGen: () => String) => {
+  sealed case class ClosedILOperationChain private[AbstractILInstructions](
+    pipe: ClosedILOperationPipeline
+  ) {
+    def ::(op: AbstractILOperation) = op ::: this
+    def ::(lhs: OpenILOperationChain) = lhs ::: this
+    def ::(lhs: ClosedILOperationChain) = lhs ::: this
+    def ::(lhs: OpenILOperationPipeline) = OpenILOperationChain(lhs) ::: this
+    def ::(lhs: ClosedILOperationPipeline)(implicit dummy: DummyImplicit) =
+      ClosedILOperationChain(lhs) ::: this
+
+    private def :::(lhs: OpenILOperationChain) =
+      ClosedILOperationChain((nameGen: () => String) => {
+        val (ls, _) = lhs.pipe(nameGen)
+        val rs = this.pipe(nameGen)
+        ls ::: rs
+      })
+
+    private def :::(lhs: ClosedILOperationChain) =
+      ClosedILOperationChain((nameGen: () => String) => {
+        val ls = lhs.pipe(nameGen)
+        val rs = this.pipe(nameGen)
+        ls ::: rs
+      })
+  }
+
+  implicit def singleAbsOpToChain(op: AbstractILOperation): OpenILOperationChain =
+    OpenILOperationChain(((nameGen: () => String) => {
       val id = Local(op.retType, nameGen())
-      (List(AbstractAssign(id, op)), Some(id))
+      (List(AbstractAssign(id, op)), id)
     }))
-  implicit def chainToPipeline(pipe: ILOperationChain): ILOperationPipeline =
+  implicit def chainToPipeline(pipe: OpenILOperationChain): OpenILOperationPipeline =
     pipe.pipe
-  implicit def singleOpToPipeline(op: AbstractILOperation): ILOperationPipeline =
+  implicit def chainToPipeline(pipe: ClosedILOperationChain): ClosedILOperationPipeline =
+    pipe.pipe
+  implicit def singleOpToPipeline(op: AbstractILOperation): OpenILOperationPipeline =
     chainToPipeline(singleAbsOpToChain(op))
   implicit def funcToAbstractILInstruction(
     fn: (Program, () => String) => List[ILInstruction]

@@ -14,14 +14,17 @@ class Function private[llvmil]( val name: String,
   def string(const: String) = sp.string(const)
 
   var abstractILs: mutable.ListBuffer[AbstractILInstruction] = mutable.ListBuffer.empty
-  def append(ilGen: ILOperationPipeline): Option[Identifier] = {
+  def append(ilGen: OpenILOperationPipeline): Identifier = {
     val (ils, id) = ilGen(() => getFreshName())
     abstractILs ++= ils
     id
   }
-  def append(il: AbstractILInstruction): Option[Identifier] = {
+  def append(ilGen: ClosedILOperationPipeline): Unit = {
+    val ils = ilGen(() => getFreshName())
+    abstractILs ++= ils
+  }
+  def append(il: AbstractILInstruction): Unit = {
     abstractILs += il
-    None
   }
 
   val functionType = TFunction(args.map(_._1), retTpe)
