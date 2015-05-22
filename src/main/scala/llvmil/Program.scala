@@ -27,17 +27,18 @@ class Program extends ConstantPool {
   }
 
   def writeToFile(fileName: String) = {
-    /*
-     * FIXME(mrksr): Do the magic
-     * Here we need to:
-     *  - Resolve the Constant Pool
-     *  - Create Class types (for fields)
-     *  - Create VTables
-     *  - Resolve Virtual Lookups
-     * 
-     * This is a Map from AIL to IL
-     */
-    ??? 
+    // import java.io._
+
+    // val file = new File(fileName)
+    // val bw = new BufferedWriter(new FileWriter(file))
+
+    // try {
+    //   ILPrinter(this).foreach(bw.write)
+    // } finally {
+    //   bw.close()
+    // }
+
+    ILPrinter(this).mkString("\n")
   }
 }
 
