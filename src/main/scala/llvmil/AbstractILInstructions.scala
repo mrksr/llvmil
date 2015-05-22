@@ -81,7 +81,7 @@ object AbstractILInstructions {
     }))
   implicit def chainToPipeline(pipe: ILOperationChain): ILOperationPipeline =
     pipe.pipe
-  implicit def singleOpToPipeline(op: ILOperation): ILOperationPipeline =
+  implicit def singleOpToPipeline(op: AbstractILOperation): ILOperationPipeline =
     chainToPipeline(singleAbsOpToChain(op))
   implicit def funcToAbstractILInstruction(
     fn: (Program, () => String) => List[ILInstruction]
