@@ -32,15 +32,15 @@ object Types {
   case class TPointer(target: Type) extends Type {
     def toIL = "%s *".format(target.toIL)
   }
-  case object TVariadic extends Type {
-    def toIL = "..."
-  }
   case class TReference(className: String) extends Type {
     def toIL = "%%%s%s%s *".format(Prefixes.struct, Prefixes.classType, className)
+  }
+  case object TVariadic extends Type {
+    def toIL = "..."
   }
 
   val TBool = TInteger(1)
   val TInt = TInteger(32)
-  val TString = TStruct("String", List(TInt, TArray(0, TInteger(8))))
-  val TIntArray = TStruct("IntArray", List(TInt, TArray(0, TInt)))
+  val TString = TPointer(TStruct("String", List(TInt, TArray(0, TInteger(8)))))
+  val TIntArray = TPointer(TStruct("IntArray", List(TInt, TArray(0, TInt))))
 }

@@ -29,7 +29,12 @@ object ILPrinter {
   }
 
   def types(prog: Program): Stream[String] = {
-    val internals = Stream(TString.declaration, TIntArray.declaration)
+    val internals = {
+      val TPointer(string: TStruct) = TString
+      val TPointer(iarr: TStruct) = TIntArray
+
+      Stream(string.declaration, iarr.declaration)
+    }
 
     val classTypes =
       prog.classes.map({
