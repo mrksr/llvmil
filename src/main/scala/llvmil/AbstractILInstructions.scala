@@ -15,9 +15,9 @@ object AbstractILInstructions {
   abstract class AbstractILOperation(val retType: Type) {
     def apply(id: Identifier): AbstractILInstruction
   }
-  // case class VirtualResolve(obj: Identifier, name: String, args: List[Type], retTpe: Type)
-  //   extends AbstractILOperation(TFunction(args, retTpe))
-  case class AccessField(obj: Identifier, name: String, tpe: Type) extends AbstractILOperation(tpe) {
+  case class AccessField(
+    obj: Identifier, name: String, tpe: Type
+  ) extends AbstractILOperation(tpe) {
     def apply(id: Identifier): AbstractILInstruction = (prog: Program, nameGen: () => String) => {
       val TReference(className) = obj.retType
       val cls = prog.classes(className)
@@ -31,14 +31,78 @@ object AbstractILInstructions {
       val index = cls.allFields.indexWhere(_._2 == name) + 1
 
       val lookup =
-        GetElementPtr(withType, List(index)) +>
-        (ptr => Assign(id, Load(ptr)))
+        Assign(id, GetElementPtr(withType, List(Const(0), Const(index))))
+
+      lookup(prog, nameGen)
+    }
+  }
+
+  case class AccessArray(
+    arr: Identifier, index: Identifier
+  ) extends AbstractILOperation({
+    val TPointer(TArray(_, tpe)) = arr.retType
+    tpe
+  }) {
+    def apply(id: Identifier): AbstractILInstruction = (prog: Program, nameGen: () => String) => {
+      val access =
+        Assign(id, GetElementPtr(arr, List(Const(0), index)))
+
+      access(prog, nameGen)
+    }
+  }
+
+  // NOTE(mrksr): Wrong return type
+  // The return type of VirtualResolve is not correct since we do not know the type
+  // of the this-pointer without doing the Resolve, which we cannot do when we want to know
+  // the type since the parent classes might not exist.
+  case class VirtualResolve(
+    obj: Identifier, name: String, args: List[Type], retTpe: Type
+  ) extends AbstractILOperation(TFunction(TPointer(TInteger(8)) :: args, retTpe)) {
+    def apply(id: Identifier): AbstractILInstruction = (prog: Program, nameGen: () => String) => {
+      val TReference(className) = obj.retType
+      val cls = prog.classes(className)
+      val ptrType = TPointer(cls.classType)
+      val withType = id match {
+        case Local(_, nme) => Local(ptrType, nme)
+        case Global(_, nme) => Global(ptrType, nme)
+
+        case _ => ???
+      }
+
+      val functionIndex = cls.vTable.lastIndexWhere({ fnc =>
+        fnc.name == name && fnc.retTpe == retTpe && fnc.args.map(_._1).tail == args
+      })
+      val functionType = cls.vTable(functionIndex).functionType
+
+      val lookup =
+        GetElementPtr(withType, List(Const(0), Const(0))) ++
+        ( Load(_) ) ++
+        ( GetElementPtr(_, List(Const(0), Const(functionIndex))) ) ++
+        ( Load(_) ) +>
+        ( fnc => Assign(id, Bitcast(TPointer(functionType), fnc)) )
 
       lookup(nameGen)._1.map(_(prog, nameGen)).flatten
     }
   }
 
-  type ILOperationPipeline = ((() => String) => (List[AbstractILInstruction], Option[Identifier]))
+  // TODO(mrksr): Constructor
+  case class SizeOf(
+    obj: TReference
+  ) extends AbstractILOperation(TInt) {
+    def apply(id: Identifier): AbstractILInstruction = (prog: Program, nameGen: () => String) => {
+      val TReference(className) = obj
+      val cls = prog.classes(className)
+      val ptrType = TPointer(cls.classType)
+
+      val lookup =
+        GetElementPtr(Bitcast(ptrType, Null), List(Const(1))) +>
+        ( size =>  Assign(id, PtrToInt(TInt, size)) )
+
+      lookup(nameGen)._1.map(_(prog, nameGen)).flatten
+    }
+  }
+
+  type ILOperationPipeline = (() => String) => (List[AbstractILInstruction], Option[Identifier])
   sealed case class ILOperationChain private[AbstractILInstructions](pipe: ILOperationPipeline) {
     def +>(rhs: Identifier => AbstractILInstruction) =
       ILOperationChain((nameGen: () => String) => {

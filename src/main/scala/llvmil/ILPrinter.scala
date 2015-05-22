@@ -108,7 +108,7 @@ object ILPrinter {
   }
 
   def identifier(id: Identifier): String = id match {
-    case Local(_ , _) | Global(_, _) | IConst(_, _) =>
+    case Null | Local(_ , _) | Global(_, _) | IConst(_, _) =>
       "%s %s".format(id.retType.toIL, id.name)
 
     case Bitcast(to, inner) => "bitcast %s to %s".format(identifier(inner), to.toIL)
