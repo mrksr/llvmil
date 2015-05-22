@@ -1,6 +1,7 @@
 package llvmil
 
 import Prefixes._
+import ILInstructions._
 
 object Types {
   sealed trait Type {
@@ -23,6 +24,11 @@ object Types {
   case class TArray(length: Int, tpe: Type) extends Type {
     def toIL = "[%d x %s]".format(length, tpe.toIL)
   }
+  case class TVTable(name: String, tpe: TArray, funcs: List[Identifier]) extends Type {
+    def toIL = "%%%s%s".format(Prefixes.vtable, name)
+    def declaration =
+      "%s = %s [ %s ]".format(toIL, tpe.toIL, funcs.map(ILPrinter.identifier).mkString(", "))
+  }
   case class TPointer(target: Type) extends Type {
     def toIL = "%s *".format(target.toIL)
   }
@@ -37,6 +43,4 @@ object Types {
   val TInt = TInteger(32)
   val TString = TStruct("String", List(TInt, TArray(0, TInteger(8))))
   val TIntArray = TStruct("IntArray", List(TInt, TArray(0, TInt)))
-
-  def TVTable(size: Int) = TArray(size, TPointer(TFunction(List(TVariadic), TVoid)))
 }

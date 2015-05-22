@@ -2,6 +2,7 @@ package llvmil
 
 import Types._
 import Prefixes._
+import ILInstructions._
 
 class Class private[llvmil]( val className: String,
                              val parentName: Option[String],
@@ -33,6 +34,18 @@ class Class private[llvmil]( val className: String,
     parentMethods ::: methods.filter(_._2.isEmpty).map(_._1)
   }
 
+  lazy val vTableType: TVTable = {
+    def tpe(size: Int) = TArray(size, TPointer(TFunction(List(TVariadic), TVoid)))
+    def mangled(functionName: String) =
+      "%s%s.%s".format(Prefixes.method, className, functionName)
+
+    TVTable(
+      className,
+      tpe(vTable.length),
+      vTable.map(fnc => Global(fnc.functionType, mangled(fnc.name)))
+    )
+  }
+
   lazy val allFields: List[(Type, String)] = {
     val parentFields =
       parentName.map(prog.classes).map(_.allFields).getOrElse(Nil)
@@ -41,7 +54,7 @@ class Class private[llvmil]( val className: String,
   }
 
   lazy val classType: TStruct = {
-    val vTableField = TPointer(TVTable(vTable.length))
+    val vTableField = TPointer(vTableType.tpe)
 
     TStruct(
       "%s%s".format(Prefixes.classType, className),

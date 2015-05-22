@@ -24,6 +24,7 @@ class Function private[llvmil]( val name: String,
     None
   }
 
+  val functionType = TFunction(args.map(_._1), retTpe)
   def resolve(prog: Program): List[ILInstruction] =
     abstractILs.toList.map(ail => ail(prog, () => getFreshName())).flatten
 

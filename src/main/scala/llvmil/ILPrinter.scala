@@ -15,12 +15,6 @@ object ILPrinter {
     functions(prog)
   }
 
-  def mangledFunctionName(className: Option[String], functionName: String) =
-    className match {
-      case None => "%s%s".format(Prefixes.static, functionName)
-      case Some(cls) => "%s%s.%s".format(Prefixes.method, cls, functionName)
-    }
-
   def strings(prog: Program): Stream[String] = {
     import java.text.Normalizer
 
@@ -47,11 +41,16 @@ object ILPrinter {
   }
 
   def functions(prog: Program): Stream[String] = {
+    def mangledStaticName(functionName: String) =
+      "%s%s".format(Prefixes.method, functionName)
+    def mangledClassName(className: String, functionName: String) =
+      "%s%s.%s".format(Prefixes.method, className, functionName)
+
     def flatten(xs: Iterable[Stream[String]]): Stream[String] =
       xs.reduceOption(_ append br append _).getOrElse(Stream.empty)
 
-    def function(className: Option[String])(fnc: Function): Stream[String] = {
-      val name = "@%s".format(mangledFunctionName(className, fnc.name))
+    def function(functionName: String)(fnc: Function): Stream[String] = {
+      val name = "@%s".format(functionName)
       val args = fnc.args.map({ case (t, n) => "%s %%%s".format(t.toIL, n) }).mkString(", ")
 
       val head = "define %s %s(%s) {".format(fnc.retTpe.toIL, name, args)
@@ -63,12 +62,18 @@ object ILPrinter {
       Stream(head) append withIndent append Stream(foot)
     }
 
-    val statics = flatten(prog.statics.map(function(None)))
+    val statics =
+      flatten(
+        prog.statics.map(fnc => function(mangledStaticName(fnc.name))(fnc)
+      ))
     val classFunctions =
       flatten(
         prog.classes.values.map(c =>
-            flatten(c.methods.map(_._1).map(function(Some(c.className))))
-      ))
+          flatten(c.methods.map(_._1).map(fnc =>
+              function(mangledClassName(c.className, fnc.name))(fnc)
+          ))
+        )
+      )
 
     statics append classFunctions
   }
