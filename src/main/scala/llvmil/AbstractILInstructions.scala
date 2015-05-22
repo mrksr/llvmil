@@ -31,9 +31,8 @@ object AbstractILInstructions {
       val index = cls.allFields.indexWhere(_._2 == name) + 1
 
       val lookup =
-        GetElementPtr(withType, List(index)) ++
-        (Load(_))
-        // (Assign(id, Load(_)))
+        GetElementPtr(withType, List(index)) +>
+        (ptr => Assign(id, Load(ptr)))
 
       lookup(nameGen)._1.map(_(prog, nameGen)).flatten
     }
@@ -42,7 +41,7 @@ object AbstractILInstructions {
   type ILOperationPipeline = ((() => String) => (List[AbstractILInstruction], Option[Identifier]))
   sealed case class ILOperationChain private[AbstractILInstructions](pipe: ILOperationPipeline) {
     def +>(rhs: Identifier => AbstractILInstruction) =
-      ((nameGen: () => String) => {
+      ILOperationChain((nameGen: () => String) => {
         pipe(nameGen) match {
           case (li, Some(id)) => {
             (li :+ rhs(id), None)
@@ -52,7 +51,7 @@ object AbstractILInstructions {
       })
 
     def ++(rhs: Identifier => AbstractILOperation) =
-      ILOperationChain(((nameGen: () => String) => {
+      ILOperationChain((nameGen: () => String) => {
         pipe(nameGen) match {
           case (li, Some(id)) => {
             val op = rhs(id)
@@ -62,7 +61,7 @@ object AbstractILInstructions {
           }
           case (_, None) => ???
         }
-      }))
+      })
 
     def ::(op: AbstractILOperation) = op ::: this
     def ::(lhs: ILOperationChain) = lhs ::: this
@@ -84,8 +83,10 @@ object AbstractILInstructions {
     pipe.pipe
   implicit def singleOpToPipeline(op: ILOperation): ILOperationPipeline =
     chainToPipeline(singleAbsOpToChain(op))
-    implicit def funcToAbstractILInstruction(fn: (Program, () => String) => List[ILInstruction]): AbstractILInstruction =
-      new AbstractILInstruction() {
-        def apply(prog: Program, nameGen: () => String): List[ILInstruction] = fn(prog, nameGen)
-      }
+  implicit def funcToAbstractILInstruction(
+    fn: (Program, () => String) => List[ILInstruction]
+  ): AbstractILInstruction =
+    new AbstractILInstruction() {
+      def apply(prog: Program, nameGen: () => String): List[ILInstruction] = fn(prog, nameGen)
+    }
 }
