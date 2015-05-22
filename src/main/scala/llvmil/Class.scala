@@ -42,7 +42,11 @@ class Class private[llvmil]( val className: String,
     TVTable(
       className,
       tpe(vTable.length),
-      vTable.map(fnc => Global(fnc.functionType, mangled(fnc.name)))
+      vTable.map(fnc => 
+          Bitcast(
+            TPointer(TFunction(List(TVariadic), TVoid)),
+            Global(TPointer(fnc.functionType), mangled(fnc.name)))
+          )
     )
   }
 

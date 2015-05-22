@@ -37,7 +37,13 @@ object ILPrinter {
           cls.classType.declaration
       }).toStream
 
-    internals append br append classTypes
+    val vTables =
+      prog.classes.map({
+        case (name, cls) =>
+          cls.vTableType.declaration
+      }).toStream
+
+    internals append br append classTypes append br append vTables
   }
 
   def functions(prog: Program): Stream[String] = {
