@@ -143,7 +143,7 @@ object ILPrinter {
 
       case Call(func, args) =>
         val argList = args.map(identifier).mkString(", ")
-        "call %s %s(%s)".format(to.retType.toIL, identifier(func), argList)
+        "call %s %s(%s)".format(to.retType.toIL, func.name, argList)
 
       case GetElementPtr(ptr, idxs) =>
         val indexes = idxs.map(i => ", %s".format(identifier(i)))
