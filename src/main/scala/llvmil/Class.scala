@@ -22,7 +22,7 @@ class Class private[llvmil]( val className: String,
                  retTpe: Type,
                  overrides: Option[MethodInfo]
                ): Function = {
-    val mtd = new Function(name, (TReference(className), "this") :: args, retTpe, prog.sp)
+    val mtd = new Function(name, (TThis, "this") :: args, retTpe, prog.sp)
     methods = methods ::: ((mtd, overrides) :: Nil)
 
     mtd

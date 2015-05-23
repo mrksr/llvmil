@@ -20,7 +20,12 @@ object AbstractILInstructions {
     obj: Identifier, name: String, tpe: Type
   ) extends AbstractILOperation(tpe) {
     def apply(id: Identifier): AbstractILInstruction = (ctx: Context) => {
-      val TReference(className) = obj.retType
+      val className = obj.retType match {
+        case TReference(cn) => cn
+        case TThis => ctx.cls.get.className
+
+        case _ => ???
+      }
       val cls = ctx.prog.classes(className)
       val ptrType = TPointer(cls.classType)
       val withType = id match {
@@ -52,15 +57,16 @@ object AbstractILInstructions {
     }
   }
 
-  // NOTE(mrksr): Wrong return type
-  // The return type of VirtualResolve is not correct since we do not know the type
-  // of the this-pointer without doing the Resolve, which we cannot do when we want to know
-  // the type since the parent classes might not exist.
   case class VirtualResolve(
     obj: Identifier, name: String, args: List[Type], retTpe: Type
-  ) extends AbstractILOperation(TFunction(TPointer(TInteger(8)) :: args, retTpe)) {
+  ) extends AbstractILOperation(TFunction(TThis :: args, retTpe)) {
     def apply(id: Identifier): AbstractILInstruction = (ctx: Context) => {
-      val TReference(className) = obj.retType
+      val className = obj.retType match {
+        case TReference(cn) => cn
+        case TThis => ctx.cls.get.className
+
+        case _ => ???
+      }
       val cls = ctx.prog.classes(className)
       val ptrType = TPointer(cls.classType)
       val withType = id match {

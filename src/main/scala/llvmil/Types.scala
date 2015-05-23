@@ -35,6 +35,9 @@ object Types {
   case class TReference(className: String) extends Type {
     def toIL = "%%%s%s%s *".format(Prefixes.struct, Prefixes.classType, className)
   }
+  case object TThis extends Type {
+    def toIL = TPointer(TInteger(8)).toIL
+  }
   case object TVariadic extends Type {
     def toIL = "..."
   }
