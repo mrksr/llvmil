@@ -73,7 +73,7 @@ object ILInstructions {
         case TArray(_, tpe) => tpe
         case TVTable(_, TArray(_, tpe), _) => tpe
 
-        case _ => ???
+        case other => sys.error("Cannot deduce return type in GetElementPtr of: " + other)
       }
     })
 

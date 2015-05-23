@@ -39,7 +39,7 @@ object AbstractILInstructions {
         case TReference(cn) => cn
         case TThis => ctx.cls.get.className
 
-        case _ => ???
+        case _ => sys.error("Can only access Fields of References and This.")
       }
       val cls = ctx.prog.classes(className)
       val ptrType = TPointer(cls.classType)
@@ -48,7 +48,7 @@ object AbstractILInstructions {
         case Global(_, nme) => Global(ptrType, nme)
         case This => Bitcast(ptrType, Local(TThis, "this"))
 
-        case _ => ???
+        case _ => sys.error("Can only access Fields of References and This.")
       }
       val index = cls.allFields.indexWhere(_._2 == name) + 1
 
@@ -81,7 +81,7 @@ object AbstractILInstructions {
         case TReference(cn) => cn
         case TThis => ctx.cls.get.className
 
-        case _ => ???
+        case _ => sys.error("Can only resolve Methods of References and This.")
       }
       val cls = ctx.prog.classes(className)
       val ptrType = TPointer(cls.classType)
@@ -90,7 +90,7 @@ object AbstractILInstructions {
         case Global(_, nme) => Global(ptrType, nme)
         case This => Bitcast(ptrType, Local(TThis, "this"))
 
-        case _ => ???
+        case _ => sys.error("Can only resolve Methods of References and This.")
       }
 
       val functionIndex = cls.vTable.lastIndexWhere({ fnc =>
