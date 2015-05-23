@@ -30,7 +30,7 @@ object ILInstructions {
   case class IConst(tpe: TInteger, i: Int) extends Identifier(tpe, i.toString)
 
   case object Null extends Identifier(TPointer(TInteger(8)), "null")
-  case object This extends Identifier(TThis, "this")
+  case object This extends Identifier(TThis, "%this")
   case class Bitcast(to: Type, id: Identifier) extends Identifier(to, id.name)
   case class PtrToInt(to: TInteger, id: Identifier) extends Identifier(to, id.name)
 

@@ -19,7 +19,7 @@ object AbstractILInstructions {
 
       val vtStore =
         GetElementPtr(
-          Bitcast(TPointer(cls.classType), Local(TThis, This.name)),
+          Bitcast(TPointer(cls.classType), Local(TThis, "this")),
           List(Const(0), Const(0))
         ) +>
         ( Store(Global(TPointer(cls.vTableType), vtGlobal), _) )
@@ -46,7 +46,7 @@ object AbstractILInstructions {
       val withType = obj match {
         case Local(_, nme) => Local(ptrType, nme)
         case Global(_, nme) => Global(ptrType, nme)
-        case This => Bitcast(ptrType, Local(TThis, obj.name))
+        case This => Bitcast(ptrType, Local(TThis, "this"))
 
         case _ => ???
       }
@@ -88,7 +88,7 @@ object AbstractILInstructions {
       val withType = obj match {
         case Local(_, nme) => Local(ptrType, nme)
         case Global(_, nme) => Global(ptrType, nme)
-        case This => Bitcast(ptrType, Local(TThis, obj.name))
+        case This => Bitcast(ptrType, Local(TThis, "this"))
 
         case _ => ???
       }
