@@ -178,11 +178,15 @@ object AbstractILInstructions {
       })
   }
 
+  implicit def singleAbsInsToChain(op: AbstractILInstruction): ClosedILOperationPipeline =
+    ClosedILOperationChain((nameGen: () => String) => {
+      List(op)
+    })
   implicit def singleAbsOpToChain(op: AbstractILOperation): OpenILOperationChain =
-    OpenILOperationChain(((nameGen: () => String) => {
+    OpenILOperationChain((nameGen: () => String) => {
       val id = Local(op.retType, nameGen())
       (List(AbstractAssign(id, op)), id)
-    }))
+    })
   implicit def chainToPipeline(pipe: OpenILOperationChain): OpenILOperationPipeline =
     pipe.pipe
   implicit def chainToPipeline(pipe: ClosedILOperationChain): ClosedILOperationPipeline =
