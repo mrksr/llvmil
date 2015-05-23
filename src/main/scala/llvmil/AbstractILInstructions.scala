@@ -31,6 +31,7 @@ object AbstractILInstructions {
       val withType = obj match {
         case Local(_, nme) => Local(ptrType, nme)
         case Global(_, nme) => Global(ptrType, nme)
+        case This => Bitcast(ptrType, Local(TThis, obj.name))
 
         case _ => ???
       }
@@ -72,6 +73,7 @@ object AbstractILInstructions {
       val withType = obj match {
         case Local(_, nme) => Local(ptrType, nme)
         case Global(_, nme) => Global(ptrType, nme)
+        case This => Bitcast(ptrType, Local(TThis, obj.name))
 
         case _ => ???
       }
