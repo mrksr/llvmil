@@ -28,7 +28,7 @@ object AbstractILInstructions {
       }
       val cls = ctx.prog.classes(className)
       val ptrType = TPointer(cls.classType)
-      val withType = to match {
+      val withType = obj match {
         case Local(_, nme) => Local(ptrType, nme)
         case Global(_, nme) => Global(ptrType, nme)
 
@@ -69,7 +69,7 @@ object AbstractILInstructions {
       }
       val cls = ctx.prog.classes(className)
       val ptrType = TPointer(cls.classType)
-      val withType = to match {
+      val withType = obj match {
         case Local(_, nme) => Local(ptrType, nme)
         case Global(_, nme) => Global(ptrType, nme)
 
