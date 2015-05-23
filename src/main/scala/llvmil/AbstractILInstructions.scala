@@ -14,12 +14,12 @@ object AbstractILInstructions {
   }
 
   abstract class AbstractILOperation(val retType: Type) {
-    def apply(id: Identifier): AbstractILInstruction
+    def apply(to: Identifier): AbstractILInstruction
   }
   case class AccessField(
     obj: Identifier, name: String, tpe: Type
   ) extends AbstractILOperation(tpe) {
-    def apply(id: Identifier): AbstractILInstruction = (ctx: Context) => {
+    def apply(to: Identifier): AbstractILInstruction = (ctx: Context) => {
       val className = obj.retType match {
         case TReference(cn) => cn
         case TThis => ctx.cls.get.className
@@ -28,7 +28,7 @@ object AbstractILInstructions {
       }
       val cls = ctx.prog.classes(className)
       val ptrType = TPointer(cls.classType)
-      val withType = id match {
+      val withType = to match {
         case Local(_, nme) => Local(ptrType, nme)
         case Global(_, nme) => Global(ptrType, nme)
 
@@ -37,7 +37,7 @@ object AbstractILInstructions {
       val index = cls.allFields.indexWhere(_._2 == name) + 1
 
       val lookup =
-        Assign(id, GetElementPtr(withType, List(Const(0), Const(index))))
+        Assign(to, GetElementPtr(withType, List(Const(0), Const(index))))
 
       lookup(ctx)
     }
@@ -49,9 +49,9 @@ object AbstractILInstructions {
     val TPointer(TArray(_, tpe)) = arr.retType
     tpe
   }) {
-    def apply(id: Identifier): AbstractILInstruction = (ctx: Context) => {
+    def apply(to: Identifier): AbstractILInstruction = (ctx: Context) => {
       val access =
-        Assign(id, GetElementPtr(arr, List(Const(0), index)))
+        Assign(to, GetElementPtr(arr, List(Const(0), index)))
 
       access(ctx)
     }
@@ -60,7 +60,7 @@ object AbstractILInstructions {
   case class VirtualResolve(
     obj: Identifier, name: String, args: List[Type], retTpe: Type
   ) extends AbstractILOperation(TFunction(TThis :: args, retTpe)) {
-    def apply(id: Identifier): AbstractILInstruction = (ctx: Context) => {
+    def apply(to: Identifier): AbstractILInstruction = (ctx: Context) => {
       val className = obj.retType match {
         case TReference(cn) => cn
         case TThis => ctx.cls.get.className
@@ -69,7 +69,7 @@ object AbstractILInstructions {
       }
       val cls = ctx.prog.classes(className)
       val ptrType = TPointer(cls.classType)
-      val withType = id match {
+      val withType = to match {
         case Local(_, nme) => Local(ptrType, nme)
         case Global(_, nme) => Global(ptrType, nme)
 
@@ -86,7 +86,7 @@ object AbstractILInstructions {
         ( Load(_) ) ++
         ( GetElementPtr(_, List(Const(0), Const(functionIndex))) ) ++
         ( Load(_) ) +>
-        ( fnc => Assign(id, Bitcast(TPointer(functionType), fnc)) )
+        ( fnc => Assign(to, Bitcast(TPointer(functionType), fnc)) )
 
       lookup(ctx.nameGen).map(_(ctx)).flatten
     }
@@ -96,14 +96,14 @@ object AbstractILInstructions {
   case class SizeOf(
     obj: TReference
   ) extends AbstractILOperation(TInt) {
-    def apply(id: Identifier): AbstractILInstruction = (ctx: Context) => {
+    def apply(to: Identifier): AbstractILInstruction = (ctx: Context) => {
       val TReference(className) = obj
       val cls = ctx.prog.classes(className)
       val ptrType = TPointer(cls.classType)
 
       val lookup =
         GetElementPtr(Bitcast(ptrType, Null), List(Const(1))) +>
-        ( size =>  Assign(id, PtrToInt(TInt, size)) )
+        ( size =>  Assign(to, PtrToInt(TInt, size)) )
 
       lookup(ctx.nameGen).map(_(ctx)).flatten
     }
