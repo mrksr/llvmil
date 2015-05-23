@@ -71,6 +71,8 @@ object ILInstructions {
           inners(i)
 
         case TArray(_, tpe) => tpe
+        case TVTable(_, TArray(_, tpe), _) => tpe
+
         case _ => ???
       }
     })

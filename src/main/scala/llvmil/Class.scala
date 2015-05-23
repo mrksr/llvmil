@@ -3,6 +3,7 @@ package llvmil
 import Types._
 import Prefixes._
 import ILInstructions._
+import AbstractILInstructions._
 
 class Class private[llvmil]( val className: String,
                              val parentName: Option[String],
@@ -24,6 +25,22 @@ class Class private[llvmil]( val className: String,
                ): Function = {
     val mtd = new Function(name, (TThis, "this") :: args, retTpe, prog.sp)
     methods = methods ::: ((mtd, overrides) :: Nil)
+
+    mtd
+  }
+
+  def addDefaultConstructor(): Function = {
+    val mtd = new Function(
+      "%sdefault".format(Prefixes.constructor),
+      List((TThis, "this")),
+      TVoid,
+      prog.sp)
+
+    methods = (mtd, None) :: methods
+
+    mtd append (
+      SetVptr
+    )
 
     mtd
   }
@@ -58,7 +75,7 @@ class Class private[llvmil]( val className: String,
   }
 
   lazy val classType: TStruct = {
-    val vTableField = TPointer(vTableType.tpe)
+    val vTableField = TPointer(vTableType)
 
     TStruct(
       "%s%s".format(Prefixes.classType, className),

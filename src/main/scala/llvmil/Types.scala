@@ -27,7 +27,13 @@ object Types {
   case class TVTable(name: String, tpe: TArray, funcs: List[Identifier]) extends Type {
     def toIL = "%%%s%s".format(Prefixes.vtable, name)
     def declaration =
-      "%s = %s [ %s ]".format(toIL, tpe.toIL, funcs.map(ILPrinter.identifier).mkString(", "))
+      "%s = %s".format(toIL, tpe.toIL, funcs.map(ILPrinter.identifier).mkString(", "))
+    def instantiation =
+      "@%s%s = %s [ %s ]".format(
+        Prefixes.vtable, name,
+        toIL,
+        funcs.map(ILPrinter.identifier).mkString(", ")
+      )
   }
   case class TPointer(target: Type) extends Type {
     def toIL = "%s *".format(target.toIL)

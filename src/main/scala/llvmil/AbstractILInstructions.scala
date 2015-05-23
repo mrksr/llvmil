@@ -12,6 +12,21 @@ object AbstractILInstructions {
   case class AbstractAssign(to: Identifier, rhs: AbstractILOperation) extends AbstractILInstruction {
     def apply(ctx: Context): List[ILInstruction] = rhs(to)(ctx)
   }
+  case object SetVptr extends AbstractILInstruction {
+    def apply(ctx: Context): List[ILInstruction] = {
+      val cls = ctx.cls.get
+      val vtGlobal = "%s%s".format(Prefixes.vtable, cls.className)
+
+      val vtStore =
+        GetElementPtr(
+          Bitcast(TPointer(cls.classType), Local(TThis, This.name)),
+          List(Const(0), Const(0))
+        ) +>
+        ( Store(Global(TPointer(cls.vTableType), vtGlobal), _) )
+
+      vtStore(ctx.nameGen).map(_(ctx)).flatten
+    }
+  }
 
   abstract class AbstractILOperation(val retType: Type) {
     def apply(to: Identifier): AbstractILInstruction
@@ -94,7 +109,6 @@ object AbstractILInstructions {
     }
   }
 
-  // TODO(mrksr): Constructor
   case class SizeOf(
     obj: TReference
   ) extends AbstractILOperation(TInt) {

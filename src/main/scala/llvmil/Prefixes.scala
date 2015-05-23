@@ -7,4 +7,5 @@ object Prefixes {
   val vtable = "vtable."
   val static = "static."
   val method = "method."
+  val constructor = "constructor."
 }
