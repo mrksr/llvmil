@@ -28,8 +28,8 @@ class Function private[llvmil]( val name: String,
   }
 
   val functionType = TFunction(args.map(_._1), retTpe)
-  def resolve(prog: Program): List[ILInstruction] =
-    abstractILs.toList.map(ail => ail(prog, () => getFreshName())).flatten
+  def resolve(prog: Program, cls: Option[Class]): List[ILInstruction] =
+    abstractILs.toList.map(ail => ail(Context(prog, cls, this, () => getFreshName()))).flatten
 
   private var labelCounts = new mutable.HashMap[String, Int]
   def getFreshLabel(prefix: String): String = {

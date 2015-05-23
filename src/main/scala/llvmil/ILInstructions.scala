@@ -5,7 +5,7 @@ import AbstractILInstructions._
 
 object ILInstructions {
   sealed trait ILInstruction extends AbstractILInstruction {
-    def apply(prog: Program, nameGen: () => String): List[ILInstruction] = List(this)
+    def apply(ctx: Context): List[ILInstruction] = List(this)
   }
 
   // Variables

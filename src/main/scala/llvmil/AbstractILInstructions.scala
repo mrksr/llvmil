@@ -5,11 +5,12 @@ import ILInstructions._
 import scala.language.implicitConversions
 
 object AbstractILInstructions {
+  case class Context(prog: Program, cls: Option[Class], fnc: Function, nameGen: () => String)
   trait AbstractILInstruction {
-    def apply(prog: Program, nameGen: () => String): List[ILInstruction]
+    def apply(ctx: Context): List[ILInstruction]
   }
   case class AbstractAssign(to: Identifier, rhs: AbstractILOperation) extends AbstractILInstruction {
-    def apply(prog: Program, nameGen: () => String): List[ILInstruction] = rhs(to)(prog, nameGen)
+    def apply(ctx: Context): List[ILInstruction] = rhs(to)(ctx)
   }
 
   abstract class AbstractILOperation(val retType: Type) {
@@ -18,9 +19,9 @@ object AbstractILInstructions {
   case class AccessField(
     obj: Identifier, name: String, tpe: Type
   ) extends AbstractILOperation(tpe) {
-    def apply(id: Identifier): AbstractILInstruction = (prog: Program, nameGen: () => String) => {
+    def apply(id: Identifier): AbstractILInstruction = (ctx: Context) => {
       val TReference(className) = obj.retType
-      val cls = prog.classes(className)
+      val cls = ctx.prog.classes(className)
       val ptrType = TPointer(cls.classType)
       val withType = id match {
         case Local(_, nme) => Local(ptrType, nme)
@@ -33,7 +34,7 @@ object AbstractILInstructions {
       val lookup =
         Assign(id, GetElementPtr(withType, List(Const(0), Const(index))))
 
-      lookup(prog, nameGen)
+      lookup(ctx)
     }
   }
 
@@ -43,11 +44,11 @@ object AbstractILInstructions {
     val TPointer(TArray(_, tpe)) = arr.retType
     tpe
   }) {
-    def apply(id: Identifier): AbstractILInstruction = (prog: Program, nameGen: () => String) => {
+    def apply(id: Identifier): AbstractILInstruction = (ctx: Context) => {
       val access =
         Assign(id, GetElementPtr(arr, List(Const(0), index)))
 
-      access(prog, nameGen)
+      access(ctx)
     }
   }
 
@@ -58,9 +59,9 @@ object AbstractILInstructions {
   case class VirtualResolve(
     obj: Identifier, name: String, args: List[Type], retTpe: Type
   ) extends AbstractILOperation(TFunction(TPointer(TInteger(8)) :: args, retTpe)) {
-    def apply(id: Identifier): AbstractILInstruction = (prog: Program, nameGen: () => String) => {
+    def apply(id: Identifier): AbstractILInstruction = (ctx: Context) => {
       val TReference(className) = obj.retType
-      val cls = prog.classes(className)
+      val cls = ctx.prog.classes(className)
       val ptrType = TPointer(cls.classType)
       val withType = id match {
         case Local(_, nme) => Local(ptrType, nme)
@@ -81,7 +82,7 @@ object AbstractILInstructions {
         ( Load(_) ) +>
         ( fnc => Assign(id, Bitcast(TPointer(functionType), fnc)) )
 
-      lookup(nameGen).map(_(prog, nameGen)).flatten
+      lookup(ctx.nameGen).map(_(ctx)).flatten
     }
   }
 
@@ -89,16 +90,16 @@ object AbstractILInstructions {
   case class SizeOf(
     obj: TReference
   ) extends AbstractILOperation(TInt) {
-    def apply(id: Identifier): AbstractILInstruction = (prog: Program, nameGen: () => String) => {
+    def apply(id: Identifier): AbstractILInstruction = (ctx: Context) => {
       val TReference(className) = obj
-      val cls = prog.classes(className)
+      val cls = ctx.prog.classes(className)
       val ptrType = TPointer(cls.classType)
 
       val lookup =
         GetElementPtr(Bitcast(ptrType, Null), List(Const(1))) +>
         ( size =>  Assign(id, PtrToInt(TInt, size)) )
 
-      lookup(nameGen).map(_(prog, nameGen)).flatten
+      lookup(ctx.nameGen).map(_(ctx)).flatten
     }
   }
 
@@ -181,9 +182,9 @@ object AbstractILInstructions {
   implicit def singleOpToPipeline(op: AbstractILOperation): OpenILOperationPipeline =
     chainToPipeline(singleAbsOpToChain(op))
   implicit def funcToAbstractILInstruction(
-    fn: (Program, () => String) => List[ILInstruction]
+    fn: Context => List[ILInstruction]
   ): AbstractILInstruction =
     new AbstractILInstruction() {
-      def apply(prog: Program, nameGen: () => String): List[ILInstruction] = fn(prog, nameGen)
+      def apply(ctx: Context): List[ILInstruction] = fn(ctx)
     }
 }

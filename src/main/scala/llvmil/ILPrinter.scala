@@ -60,14 +60,14 @@ object ILPrinter {
     def flatten(xs: Iterable[Stream[String]]): Stream[String] =
       xs.reduceOption(_ append br append _).getOrElse(Stream.empty)
 
-    def function(functionName: String)(fnc: Function): Stream[String] = {
+    def function(functionName: String)(cls: Option[Class], fnc: Function): Stream[String] = {
       val name = "@%s".format(functionName)
       val args = fnc.args.map({ case (t, n) => "%s %%%s".format(t.toIL, n) }).mkString(", ")
 
       val head = "define %s %s(%s) {".format(fnc.retTpe.toIL, name, args)
       val foot = "}"
 
-      val instructions = fnc.resolve(prog).map(instruction)
+      val instructions = fnc.resolve(prog, cls).map(instruction)
       val withIndent = instructions.map(line => "  %s".format(line)).toStream
 
       Stream(head) append withIndent append Stream(foot)
@@ -75,13 +75,13 @@ object ILPrinter {
 
     val statics =
       flatten(
-        prog.statics.map(fnc => function(mangledStaticName(fnc.name))(fnc)
+        prog.statics.map(fnc => function(mangledStaticName(fnc.name))(None, fnc)
       ))
     val classFunctions =
       flatten(
         prog.classes.values.map(c =>
           flatten(c.methods.map(_._1).map(fnc =>
-              function(mangledClassName(c.className, fnc.name))(fnc)
+              function(mangledClassName(c.className, fnc.name))(Some(c), fnc)
           ))
         )
       )
