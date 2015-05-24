@@ -48,17 +48,14 @@ object MyList {
     }
 
     locally {
-      val string_create =
-        Global(TPointer(TFunction(List(TPointer(TInteger(8))), TString)), "string_create")
-      val string_equals =
-        Global(TPointer(TFunction(List(TString, TString), TBool)), "string_equals")
+      import Runtime._
       implicit val main = prog.addMain()
 
       val lhs = main.append(Call(string_create, List(Bitcast(TPointer(TChar), Const("Hallo")))))
       val rhs = main.append(Call(string_create, List(Bitcast(TPointer(TChar), Const("Mallo")))))
       main append (
-        Call(string_equals, List(lhs, rhs)) ::
-        Sub(Const(1), Const(2)) ::
+        Call(string_equals, List(lhs, rhs)) +>
+        (id => CallVoid(println_bool, List(id) ) ) ::
         Ret(Const(1))
       )
     }
