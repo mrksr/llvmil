@@ -104,6 +104,10 @@ object ILPrinter {
       "store %s, %s".format(identifier(value), identifier(to))
     case Assign(to, rhs) =>
       operation(to, rhs)
+
+    case CallVoid(func, args) =>
+      val argList = args.map(identifier).mkString(", ")
+      "call void %s(%s)".format(func.name, argList)
   }
 
   def identifier(id: Identifier): String = id match {

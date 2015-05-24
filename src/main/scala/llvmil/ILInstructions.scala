@@ -18,6 +18,7 @@ object ILInstructions {
   case class Ret(id: Identifier) extends ILInstruction
   case class BrCond(cond: Identifier, iftrue: String, iffalse: String) extends ILInstruction
   case class Br(dest: String) extends ILInstruction
+  case class CallVoid(func: Identifier, args: List[Identifier]) extends ILInstruction
 
   sealed abstract class ILOperation(retType: Type) extends AbstractILOperation(retType) {
     def apply(id: Identifier): AbstractILInstruction = Assign(id, this)
