@@ -33,7 +33,7 @@ object AbstractILInstructions {
   }
   case class AccessField(
     obj: Identifier, name: String, tpe: Type
-  ) extends AbstractILOperation(tpe) {
+  ) extends AbstractILOperation(TPointer(tpe)) {
     def apply(to: Identifier): AbstractILInstruction = (ctx: Context) => {
       val className = obj.retType match {
         case TReference(cn) => cn
@@ -75,7 +75,7 @@ object AbstractILInstructions {
 
   case class VirtualResolve(
     obj: Identifier, name: String, args: List[Type], retTpe: Type
-  ) extends AbstractILOperation(TFunction(TThis :: args, retTpe)) {
+  ) extends AbstractILOperation(TPointer(TFunction(TThis :: args, retTpe))) {
     def apply(to: Identifier): AbstractILInstruction = (ctx: Context) => {
       val className = obj.retType match {
         case TReference(cn) => cn
