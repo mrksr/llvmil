@@ -192,7 +192,7 @@ object AbstractILInstructions {
       })
   }
 
-  implicit def singleAbsInsToChain(op: AbstractILInstruction): ClosedILOperationPipeline =
+  implicit def singleAbsInsToChain(op: AbstractILInstruction): ClosedILOperationChain =
     ClosedILOperationChain((nameGen: () => String) => {
       List(op)
     })
