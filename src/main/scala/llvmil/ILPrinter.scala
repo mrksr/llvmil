@@ -51,7 +51,8 @@ object ILPrinter {
 
   def functions(prog: Program): Stream[String] = {
     def mangledStaticName(functionName: String) =
-      "%s%s".format(Prefixes.method, functionName)
+      // NOTE(mrksr): We do not mangle them to allow for magic names like "main"
+      functionName
     def mangledClassName(className: String, functionName: String) =
       "%s%s.%s".format(Prefixes.method, className, functionName)
 
