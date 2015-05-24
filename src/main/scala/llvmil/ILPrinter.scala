@@ -16,12 +16,9 @@ object ILPrinter {
   }
 
   def strings(prog: Program): Stream[String] = {
-    import java.text.Normalizer
-
     prog.sp.allStrings.map({
       case (string, identifier) =>
-        val normalized = Normalizer.normalize(string, Normalizer.Form.NFD)
-        val ascii = normalized.replaceAll("[^\\p{ASCII}]", "")
+        val ascii = StringPool.normalize(string)
         "%s = internal constant [%d x i8] c\"%s\\00\"".format(
           identifier.name, ascii.length + 1, ascii
         )
@@ -48,7 +45,8 @@ object ILPrinter {
           cls.vTableType.instantiation
       }).toStream
 
-    internals append br append classTypes append br append vTables
+    // internals append
+    br append classTypes append br append vTables
   }
 
   def functions(prog: Program): Stream[String] = {
@@ -133,16 +131,16 @@ object ILPrinter {
       }
 
       case Add(lhs, rhs) =>
-        "add %s, %s".format(identifier(lhs), identifier(rhs))
+        "add %s %s, %s".format(to.retType.toIL, lhs.name, rhs.name)
 
       case Sub(lhs, rhs) =>
-        "sub %s, %s".format(identifier(lhs), identifier(rhs))
+        "sub %s %s, %s".format(to.retType.toIL, lhs.name, rhs.name)
 
       case Mul(lhs, rhs) =>
-        "mul %s, %s".format(identifier(lhs), identifier(rhs))
+        "mul %s %s, %s".format(to.retType.toIL, lhs.name, rhs.name)
 
       case Div(lhs, rhs) =>
-        "sdiv %s, %s".format(identifier(lhs), identifier(rhs))
+        "sdiv %s %s, %s".format(to.retType.toIL, lhs.name, rhs.name)
 
       case Icmp(op, lhs, rhs) =>
         "icmp %s %s, %s".format(op, identifier(lhs), identifier(rhs))

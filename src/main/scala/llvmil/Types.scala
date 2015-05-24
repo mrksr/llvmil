@@ -47,6 +47,7 @@ object Types {
   }
 
   val TBool = TInteger(1)
+  val TChar = TInteger(8)
   val TInt = TInteger(32)
   val TString = TPointer(TStruct("String", List(TInt, TArray(0, TInteger(8)))))
   val TIntArray = TPointer(TStruct("IntArray", List(TInt, TArray(0, TInt))))
