@@ -27,18 +27,16 @@ class Program extends ConstantPool {
   }
 
   def writeToFile(fileName: String) = {
-    // import java.io._
+    import java.io._
 
-    // val file = new File(fileName)
-    // val bw = new BufferedWriter(new FileWriter(file))
+    val file = new File(fileName)
+    val bw = new BufferedWriter(new FileWriter(file))
 
-    // try {
-    //   ILPrinter(this).foreach(bw.write)
-    // } finally {
-    //   bw.close()
-    // }
-
-    ILPrinter(this).mkString("\n")
+    try {
+      ILPrinter(this).foreach({line => bw.write(line); bw.write("\n")})
+    } finally {
+      bw.close()
+    }
   }
 }
 
