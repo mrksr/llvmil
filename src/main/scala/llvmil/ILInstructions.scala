@@ -82,7 +82,7 @@ object ILInstructions {
 
   // Functions
   case class Call(func: Identifier, args: List[Identifier]) extends ILOperation({
-    val TFunction(_, ret) = func.retType
+    val TPointer(TFunction(_, ret)) = func.retType
     ret
   })
 }
