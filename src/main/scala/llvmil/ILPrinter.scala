@@ -93,9 +93,9 @@ object ILPrinter {
     case Label(name) =>
       "%s:".format(name)
     case RetVoid =>
-      "return void"
+      "ret void"
     case Ret(id) =>
-      "return %s".format(identifier(id))
+      "ret %s".format(identifier(id))
     case Br(dest) =>
       "br label %s".format(dest)
     case BrCond(cond, iftrue, iffalse) =>
@@ -111,14 +111,26 @@ object ILPrinter {
     case Null | This | Local(_ , _) | Global(_, _) | IConst(_, _) =>
       "%s %s".format(id.retType.toIL, id.name)
 
-    case Bitcast(to, inner) => "bitcast %s to %s".format(identifier(inner), to.toIL)
-    case PtrToInt(to, inner) => "ptrtoint %s to %s".format(identifier(inner), to.toIL)
+    case Bitcast(to, inner) => "%s bitcast(%s to %s)".format(to.toIL, identifier(inner), to.toIL)
+    case PtrToInt(to, inner) => "%s ptrtoint(%s to %s)".format(to.toIL, identifier(inner), to.toIL)
   }
 
   def operation(to: Identifier, op: ILOperation): String = {
     val toAssign = op match {
-      case id: Identifier =>
-        identifier(id)
+      case id: Identifier => id match {
+        // NOTE(mrksr): We have to repete those here since if they are to be
+        // interpreted as operations, they do not need a type.
+        case Null | This | Local(_ , _) | Global(_, _) =>
+          sys.error("A raw identifier is no valid operation.")
+
+        case IConst(tpe, i) =>
+          "%s %s".format(tpe.toIL, i.toString)
+
+        case Bitcast(to, inner) =>
+          "bitcast %s to %s".format(identifier(inner), to.toIL)
+        case PtrToInt(to, inner) =>
+          "ptrtoint %s to %s".format(identifier(inner), to.toIL)
+      }
 
       case Add(lhs, rhs) =>
         "add %s %s, %s".format(to.retType.toIL, identifier(lhs), identifier(rhs))
@@ -139,7 +151,7 @@ object ILPrinter {
         "alloca %s".format(tpe.toIL)
 
       case Load(ptr) =>
-        "load %s, %s".format(to.retType.toIL, identifier(ptr))
+        "load %s".format(identifier(ptr))
 
       case Call(func, args) =>
         val argList = args.map(identifier).mkString(", ")
@@ -148,7 +160,7 @@ object ILPrinter {
       case GetElementPtr(ptr, idxs) =>
         val indexes = idxs.map(i => ", %s".format(identifier(i)))
         val TPointer(inner) = ptr.retType
-        "getelementptr %s, %s%s".format(inner.toIL, identifier(ptr), indexes.mkString(""))
+        "getelementptr %s%s".format(identifier(ptr), indexes.mkString(""))
     }
 
     "%s = %s".format(to.name, toAssign)
