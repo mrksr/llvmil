@@ -118,7 +118,7 @@ object ILPrinter {
   def operation(to: Identifier, op: ILOperation): String = {
     val toAssign = op match {
       case id: Identifier => id match {
-        // NOTE(mrksr): We have to repete those here since if they are to be
+        // NOTE(mrksr): We have to repeat those here since if they are to be
         // interpreted as operations, they do not need a type.
         case Null | This | Local(_ , _) | Global(_, _) =>
           sys.error("A raw identifier is no valid operation.")
