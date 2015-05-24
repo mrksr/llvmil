@@ -18,10 +18,8 @@ object AbstractILInstructions {
       val vtGlobal = "%s%s".format(Prefixes.vtable, cls.className)
 
       val vtStore =
-        GetElementPtr(
-          Bitcast(TPointer(cls.classType), Local(TThis, "this")),
-          List(Const(0), Const(0))
-        ) +>
+        Bitcast(TPointer(cls.classType), Local(TThis, "this")) ++
+        ( GetElementPtr( _, List(Const(0), Const(0))) ) +>
         ( Store(Global(TPointer(cls.vTableType), vtGlobal), _) )
 
       vtStore(ctx.nameGen).map(_(ctx)).flatten
@@ -43,19 +41,20 @@ object AbstractILInstructions {
       }
       val cls = ctx.prog.classes(className)
       val ptrType = TPointer(cls.classType)
-      val withType = obj match {
-        case Local(_, nme) => Local(ptrType, nme)
-        case Global(_, nme) => Global(ptrType, nme)
-        case This => Bitcast(ptrType, Local(TThis, "this"))
+      val index = cls.allFields.indexWhere(_._2 == name) + 1
+
+      val (castLis, withType) = obj match {
+        case Local(_, nme) => (Nil, Local(ptrType, nme))
+        case Global(_, nme) => (Nil, Global(ptrType, nme))
+        case This => Bitcast(ptrType, Local(TThis, "this"))(ctx.nameGen)
 
         case _ => sys.error("Can only access Fields of References and This.")
       }
-      val index = cls.allFields.indexWhere(_._2 == name) + 1
 
       val lookup =
         Assign(to, GetElementPtr(withType, List(Const(0), Const(index))))
 
-      lookup(ctx)
+      castLis.map(_(ctx)).flatten ::: lookup(ctx)
     }
   }
 
@@ -85,19 +84,18 @@ object AbstractILInstructions {
       }
       val cls = ctx.prog.classes(className)
       val ptrType = TPointer(cls.classType)
-      val withType = obj match {
-        case Local(_, nme) => Local(ptrType, nme)
-        case Global(_, nme) => Global(ptrType, nme)
-        case This => Bitcast(ptrType, Local(TThis, "this"))
-
-        case _ => sys.error("Can only resolve Methods of References and This.")
-      }
-
       val functionIndex = cls.vTable.lastIndexWhere({ fnc =>
         fnc.name == name && fnc.retTpe == retTpe && fnc.args.map(_._1).tail == args
       })
       val functionType = cls.vTable(functionIndex).functionType
 
+      val (castLis, withType) = obj match {
+        case Local(_, nme) => (Nil, Local(ptrType, nme))
+        case Global(_, nme) => (Nil, Global(ptrType, nme))
+        case This => Bitcast(ptrType, Local(TThis, "this"))(ctx.nameGen)
+
+        case _ => sys.error("Can only resolve Methods of References and This.")
+      }
       val lookup =
         GetElementPtr(withType, List(Const(0), Const(0))) ++
         ( Load(_) ) ++
@@ -105,7 +103,7 @@ object AbstractILInstructions {
         ( Load(_) ) +>
         ( fnc => Assign(to, Bitcast(TPointer(functionType), fnc)) )
 
-      lookup(ctx.nameGen).map(_(ctx)).flatten
+      castLis.map(_(ctx)).flatten ::: lookup(ctx.nameGen).map(_(ctx)).flatten
     }
   }
 
@@ -118,7 +116,8 @@ object AbstractILInstructions {
       val ptrType = TPointer(cls.classType)
 
       val lookup =
-        GetElementPtr(Bitcast(ptrType, Null), List(Const(1))) +>
+        Bitcast(ptrType, Null) ++
+        ( GetElementPtr(_, List(Const(1))) ) +>
         ( size =>  Assign(to, PtrToInt(TInt, size)) )
 
       lookup(ctx.nameGen).map(_(ctx)).flatten
