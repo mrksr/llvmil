@@ -13,14 +13,14 @@ object Test {
     val cls = prog.addClass("Hallo", None)
     cls.addField("MyNum", TInt)
     cls.addField("MyBool", TBool)
-    cls.addDefaultConstructor()
+    cls.addDefaultConstructor() append (
+      RetVoid
+    )
 
-    cls.addMethod("Wurst", List((TInt, "a"), (TInt, "b")), TInt, None)
     implicit val mtd = cls.addMethod("Test", List((TInt, "x"), (TInt, "y")), TBool, None)
     mtd append (
       Add(Const(3), Const("Hallo!")) ::
       Sub(Const("Wurst"), Const(123)) ::
-      Const("äßüöµ@»«¢") ::
       AccessField(Local(TReference("Wurst"), "wurst"), "ThisNum", TInt) +>
       (Store(Const(5), _))
     )
@@ -28,7 +28,7 @@ object Test {
     mtd append (
       Alloca(TArray(5, TBool)) ++
       ( AccessArray(_, Const(3)) ) +>
-      ( Assign(Global(TBool, "Penisfuerst"), _) )
+      ( arr => Assign(Local(TBool, "Penisfuerst"), Add(arr, Const(2))) )
     )
 
     val rslv = mtd append (
@@ -40,6 +40,16 @@ object Test {
       SizeOf(TReference("Wurst")) ::
       VirtualResolve(This, "constructor.default", Nil, TVoid) ++
       ( Call (_, List(This)) )
+    )
+
+    val mtd2 = cls.addMethod("Wurst", List((TInt, "a"), (TInt, "b")), TInt, None)
+    mtd2 append (
+      Icmp(Comparisons.ne, Const(1), Const(3)) +>
+      ( BrCond(_, "left", "right") ) ::
+      Label("left") ::
+      Ret(Const("äßüöµ@»«¢")(mtd2)) ::
+      Label("right") ::
+      Ret(Const(0))
     )
 
     prog.writeToFile("test.ll")
