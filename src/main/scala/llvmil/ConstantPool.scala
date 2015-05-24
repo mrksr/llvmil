@@ -27,7 +27,7 @@ private[llvmil] class StringPool extends ConstantPool {
 }
 
 object StringPool {
-  def normalize(str: String): String = {
+  def normalize(string: String): String = {
     import java.text.Normalizer
 
     val normalized = Normalizer.normalize(string, Normalizer.Form.NFD)
