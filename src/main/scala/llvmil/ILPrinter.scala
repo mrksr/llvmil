@@ -45,11 +45,8 @@ object ILPrinter {
     val vTables =
       prog.classes.map({
         case (name, cls) =>
-          List(
-            cls.vTableType.declaration,
-            cls.vTableType.instantiation
-          )
-      }).flatten.toStream
+          cls.vTableType.instantiation
+      }).toStream
 
     internals append br append classTypes append br append vTables
   }
