@@ -46,14 +46,16 @@ object ILInstructions {
   case class Div(lhs: Identifier, rhs: Identifier) extends ILOperation(lhs.retType)
 
   // Comparisons
-  sealed trait Comparison
-  case object eq extends Comparison
-  case object ne extends Comparison
-  case object sgt extends Comparison
-  case object sge extends Comparison
-  case object slt extends Comparison
-  case object sle extends Comparison
-  case class Icmp(op: Comparison, lhs: Identifier, rhs: Identifier) extends ILOperation(TBool)
+  object Comparisons {
+    sealed trait Comparison
+    case object eq extends Comparison
+    case object ne extends Comparison
+    case object sgt extends Comparison
+    case object sge extends Comparison
+    case object slt extends Comparison
+    case object sle extends Comparison
+  }
+  case class Icmp(op: Comparisons.Comparison, lhs: Identifier, rhs: Identifier) extends ILOperation(TBool)
 
   // Memory
   case class Alloca(tpe: Type) extends ILOperation(TPointer(tpe))

@@ -133,19 +133,19 @@ object ILPrinter {
       }
 
       case Add(lhs, rhs) =>
-        "add %s %s, %s".format(to.retType.toIL, identifier(lhs), identifier(rhs))
+        "add %s, %s".format(identifier(lhs), identifier(rhs))
 
       case Sub(lhs, rhs) =>
-        "sub %s %s, %s".format(to.retType.toIL, identifier(lhs), identifier(rhs))
+        "sub %s, %s".format(identifier(lhs), identifier(rhs))
 
       case Mul(lhs, rhs) =>
-        "mul %s %s, %s".format(to.retType.toIL, identifier(lhs), identifier(rhs))
+        "mul %s, %s".format(identifier(lhs), identifier(rhs))
 
       case Div(lhs, rhs) =>
-        "sdiv %s %s, %s".format(to.retType.toIL, identifier(lhs), identifier(rhs))
+        "sdiv %s, %s".format(identifier(lhs), identifier(rhs))
 
       case Icmp(op, lhs, rhs) =>
-        "icmp %s %s %s, %s".format(op, to.retType.toIL, identifier(lhs), identifier(rhs))
+        "icmp %s %s, %s".format(op, identifier(lhs), identifier(rhs))
 
       case Alloca(tpe) =>
         "alloca %s".format(tpe.toIL)
