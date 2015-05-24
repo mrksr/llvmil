@@ -7,12 +7,12 @@
 
 define i32 @main() {
 entry:
-    call void @println_string(%String* bitcast ({ i32, [12 x i8] }* @hello to %String*))
+    call void @println_string(%struct.String* bitcast ({ i32, [12 x i8] }* @hello to %struct.String*))
     call void @println_bool(i1 0)
-    %str.0 = call %String* @string_create(i8* bitcast ([17 x i8]* @sz$0 to i8*))
-    %str.1 = call %String* @string_create(i8* bitcast ([25 x i8]* @sz$1 to i8*))
-    %str = call %String* @string_concat(%String* %str.0, %String* %str.1)
-    call void @println_string(%String* %str)
+    %str.0 = call %struct.String* @string_create(i8* bitcast ([17 x i8]* @sz$0 to i8*))
+    %str.1 = call %struct.String* @string_create(i8* bitcast ([25 x i8]* @sz$1 to i8*))
+    %str = call %struct.String* @string_concat(%struct.String* %str.0, %struct.String* %str.1)
+    call void @println_string(%struct.String* %str)
     call void @println_int(i32 75)
     ret i32 0
 }
