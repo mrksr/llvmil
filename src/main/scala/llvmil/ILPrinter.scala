@@ -85,7 +85,7 @@ object ILPrinter {
         )
       )
 
-    statics append classFunctions
+    statics append br append classFunctions
   }
 
   def instruction(il: ILInstruction): String = il match {
