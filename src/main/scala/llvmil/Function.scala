@@ -34,8 +34,8 @@ class Function private[llvmil]( val name: String,
   private var labelCounts = new mutable.HashMap[String, Int]
   def getFreshLabel(prefix: String): String = {
     val postfix: Int = labelCounts.getOrElse(prefix, {
-      labelCounts(prefix) = 0
-      0
+      labelCounts(prefix) = 1
+      1
     })
     val name = "%s%d".format(prefix, postfix)
     labelCounts(prefix) = postfix + 1
@@ -45,8 +45,8 @@ class Function private[llvmil]( val name: String,
   private var nameCounts = new mutable.HashMap[String, Int]
   def getFreshName(prefix: String = ""): String = {
     val postfix: Int = nameCounts.getOrElse(prefix, {
-      nameCounts(prefix) = 0
-      0
+      nameCounts(prefix) = 1
+      1
     })
     val name = "%s%d".format(prefix, postfix)
     nameCounts(prefix) = postfix + 1
