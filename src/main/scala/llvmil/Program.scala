@@ -26,6 +26,13 @@ class Program extends ConstantPool {
     fnc
   }
 
+  def addMain(): Function = {
+    val fnc = new Function("main", Nil, TInt, sp)
+    statics = fnc :: statics
+
+    fnc
+  }
+
   def writeToFile(fileName: String) = {
     import java.io._
 
