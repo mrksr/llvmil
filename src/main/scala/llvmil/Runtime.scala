@@ -8,7 +8,7 @@ object Runtime {
     Global(TPointer(TFunction(List(TInt), TString)), "string_alloc")
 
   val string_create =
-    Global(TPointer(TFunction(List(TPointer(TInteger(8))), TString)), "string_create")
+    Global(TPointer(TFunction(List(TPointer(TChar)), TString)), "string_create")
 
   val string_concat =
     Global(TPointer(TFunction(List(TString, TString), TString)), "string_concat")
@@ -27,4 +27,15 @@ object Runtime {
 
   val println_bool =
     Global(TPointer(TFunction(List(TBool), TVoid)), "println_bool")
+
+  val allRuntimeFunctions = List(
+    string_alloc,
+    string_create,
+    string_concat,
+    string_equals,
+    array_alloc,
+    println_int,
+    println_string,
+    println_bool
+  )
 }

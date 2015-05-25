@@ -26,11 +26,16 @@ object ILPrinter {
   }
 
   def types(prog: Program): Stream[String] = {
-    val internals = {
-      val TPointer(string: TStruct) = TString
-      val TPointer(iarr: TStruct) = TIntArray
+    val runtime = {
+      import Runtime._
 
-      Stream(string.declaration, iarr.declaration)
+      val internals = TString :: TIntArray :: allRuntimeFunctions
+      internals.map({
+        case TPointer(tpe: TStruct) =>
+          tpe.declaration
+        case Global(TPointer(fnc: TFunction), name) =>
+          fnc.declaration(name)
+      }).toStream
     }
 
     val classTypes =
@@ -45,7 +50,7 @@ object ILPrinter {
           cls.vTableType.instantiation
       }).toStream
 
-    // internals append
+    runtime append
     br append classTypes append br append vTables
   }
 

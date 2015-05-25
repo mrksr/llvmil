@@ -19,7 +19,10 @@ object Types {
     def declaration = "%s = type { %s }".format(toIL, fields.map(_.toIL).mkString(", "))
   }
   case class TFunction(args: List[Type], retTpe: Type) extends Type {
-    def toIL = "%s (%s)".format(retTpe.toIL, args.map(_.toIL).mkString(", "))
+    private lazy val argList = args.map(_.toIL).mkString(", ")
+
+    def toIL = "%s (%s)".format(retTpe.toIL, argList)
+    def declaration(name: String) = "declare %s @%s(%s)".format(retTpe.toIL, name, argList)
   }
   case class TArray(length: Int, tpe: Type) extends Type {
     def toIL = "[%d x %s]".format(length, tpe.toIL)
