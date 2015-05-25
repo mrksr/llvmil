@@ -43,7 +43,7 @@ object Types {
     def toIL = "%%%s%s%s *".format(Prefixes.struct, Prefixes.classType, className)
   }
   case object TThis extends Type {
-    def toIL = TPointer(TInteger(8)).toIL
+    def toIL = TPointer(TChar).toIL
   }
   case object TVariadic extends Type {
     def toIL = "..."
@@ -52,6 +52,6 @@ object Types {
   val TBool = TInteger(1)
   val TChar = TInteger(8)
   val TInt = TInteger(32)
-  val TString = TPointer(TStruct("String", List(TInt, TArray(0, TInteger(8)))))
+  val TString = TPointer(TStruct("String", List(TInt, TArray(0, TChar))))
   val TIntArray = TPointer(TStruct("IntArray", List(TInt, TArray(0, TInt))))
 }
