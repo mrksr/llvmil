@@ -38,6 +38,7 @@ object ILInstructions {
   object Const {
     def apply(s: String)(implicit pool: ConstantPool) = pool.string(s)
     def apply(i: Int) = IConst(TInt, i)
+    def apply(b: Boolean) = IConst(TBool, if (b) 1 else 0)
   }
 
   // Arithmetics
