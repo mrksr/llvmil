@@ -13,9 +13,6 @@ object Test {
     val cls = prog.addClass("Hallo", None)
     cls.addField("MyNum", TInt)
     cls.addField("MyBool", TBool)
-    cls.addDefaultConstructor() append (
-      RetVoid
-    )
 
     implicit val mtd = cls.addMethod("Test", List((TInt, "x"), (TInt, "y")), TBool, None)
     mtd append (
@@ -38,8 +35,8 @@ object Test {
 
     mtd.append (
       SizeOf(TReference("Wurst")) ::
-      VirtualResolve(This, "constructor.default", Nil, TVoid) ++
-      ( Call (_, List(This)) )
+      VirtualResolve(This, "Test", List(TInt, TInt), TBool) ++
+      ( Call (_, List(This, Const(1), Const(4))) )
     )
 
     val mtd2 = cls.addMethod("Wurst", List((TInt, "a"), (TInt, "b")), TInt, None)

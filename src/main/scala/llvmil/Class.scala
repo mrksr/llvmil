@@ -29,41 +29,44 @@ class Class private[llvmil]( val className: String,
     mtd
   }
 
-  def addDefaultConstructor(): Function = {
-    val mtd = new Function(
-      "%sdefault".format(Prefixes.constructor),
-      List((TThis, "this")),
-      TVoid,
-      prog.sp)
-
-    methods = (mtd, None) :: methods
-
-    mtd append (
-      SetVptr
-    )
-
-    mtd
-  }
-
   // The Lazys MUST be evaluated after all classes exist!
-  lazy val vTable: List[Function] = {
+  lazy val vTable: List[(String, Function)] = {
+    val (original, overriding) = methods.partition(_._2.isEmpty)
+
     val parentMethods = parentName.map(prog.classes).map(_.vTable).getOrElse(Nil)
-    parentMethods ::: methods.filter(_._2.isEmpty).map(_._1)
+
+    // NOTE(mrksr): This abomination finds out where in the vTable to put overriding functions.
+    val (withOverrides, leftovers) = 
+      (parentMethods :\ (List[(String, Function)](), overriding.toSet)) {
+        case ((cls, mtd), (acc, ovrs)) =>
+          ovrs.find( ovr => {
+            val (cld, Some((name, args, retTpe))) = ovr
+            mtd.name == name && mtd.retTpe == retTpe && mtd.args.map(_._1).tail == args
+          }) match {
+            case None => ((cls, mtd) :: acc, ovrs)
+            case Some(ovr) => ((className, ovr._1) :: acc, ovrs - ovr)
+          }
+      }
+
+    if (!leftovers.isEmpty)
+      sys.error("Error in vTable for %s, the following methods have nothing to override: %s".format(className, leftovers))
+
+    withOverrides ::: original.map(_._1).map((className, _))
   }
 
   lazy val vTableType: TVTable = {
     def tpe(size: Int) = TArray(size, TPointer(TFunction(List(TVariadic), TVoid)))
-    def mangled(functionName: String) =
+    def mangled(className: String, functionName: String) =
       "%s%s.%s".format(Prefixes.method, className, functionName)
 
     TVTable(
       className,
       tpe(vTable.length),
-      vTable.map(fnc => 
+      vTable.map({ case(cls, fnc) => 
           Bitcast(
             TPointer(TFunction(List(TVariadic), TVoid)),
-            Global(TPointer(fnc.functionType), mangled(fnc.name)))
-          )
+            Global(TPointer(fnc.functionType), mangled(cls, fnc.name)))
+      })
     )
   }
 

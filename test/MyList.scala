@@ -7,13 +7,42 @@ object MyList {
   def main(args: Array[String]): Unit = {
     val prog = new Program()
 
-    val cls = prog.addClass("MyIntList", None)
+    val parent = prog.addClass("Object", None)
+    parent.addField("id", TInt)
+
+    locally {
+      implicit val mtd = parent.addMethod("setID", List((TInt, "to")), TVoid, None)
+
+      mtd append (
+        AccessField(This, "id", TInt) +>
+        ( Store(Local(TInt, "to"), _ ) ) ::
+        RetVoid
+      )
+    }
+
+    locally {
+      implicit val mtd = parent.addMethod("getID", Nil, TInt, None)
+
+      mtd append (
+        AccessField(This, "id", TInt) ++
+        ( Load(_) ) +>
+        ( Ret(_) )
+      )
+    }
+
+
+    val cls = prog.addClass("MyIntList", Some("Object"))
     cls.addField("Value", TInt)
     cls.addField("Prev", TReference("MyIntList"))
     cls.addField("Next", TReference("MyIntList"))
-    cls.addDefaultConstructor() append (
-      RetVoid
-    )
+
+    locally {
+      implicit val mtd = cls.addMethod("getID", Nil, TInt, Some(("getID", Nil, TInt)))
+
+      mtd append (
+        Ret(Const(42))
+      )
+    }
 
     locally {
       implicit val mtd = cls.addMethod("setVal", List((TInt, "to")), TVoid, None)
