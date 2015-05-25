@@ -37,10 +37,10 @@ object Types {
       )
   }
   case class TPointer(target: Type) extends Type {
-    def toIL = "%s *".format(target.toIL)
+    def toIL = "%s*".format(target.toIL)
   }
   case class TReference(className: String) extends Type {
-    def toIL = "%%%s%s%s *".format(Prefixes.struct, Prefixes.classType, className)
+    def toIL = "%%%s%s%s*".format(Prefixes.struct, Prefixes.classType, className)
   }
   case object TThis extends Type {
     def toIL = TPointer(TChar).toIL
