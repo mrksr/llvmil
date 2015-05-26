@@ -14,8 +14,11 @@ object Types {
   case class TInteger(size: Int) extends Type {
     def toIL = "i%d".format(size)
   }
-  case class TStruct(name: String, fields: List[Type]) extends Type {
-    def toIL = "%%%s%s".format(Prefixes.struct, name)
+  case class TStruct(name: Option[String], fields: List[Type]) extends Type {
+    def toIL = name match {
+      case Some(global) => "%%%s%s".format(Prefixes.struct, global)
+      case None => "{ %s }".format(fields.map(_.toIL).mkString(", "))
+    }
     def declaration = "%s = type { %s }".format(toIL, fields.map(_.toIL).mkString(", "))
   }
   case class TFunction(args: List[Type], retTpe: Type) extends Type {
