@@ -153,7 +153,7 @@ object ILPrinter {
         "sdiv %s %s, %s".format(to.retType.toIL, lhs.name, rhs.name)
 
       case Icmp(op, lhs, rhs) =>
-        "icmp %s %s, %s".format(op, identifier(lhs), identifier(rhs))
+        "icmp %s %s %s, %s".format(op, lhs.retType.toIL, lhs.name, rhs.name)
 
       case Alloca(tpe) =>
         "alloca %s".format(tpe.toIL)
