@@ -72,8 +72,6 @@ object OperationChains {
       })
   }
 
-  // NOTE(mrksr): These conversions should probablystay here to be visible to everyone
-  // using IL instructions.
   implicit def singleAbsInsToChain(op: AbstractILInstruction): ClosedILOperationChain =
     ClosedILOperationChain((nameGen: () => String) => {
       List(op)
