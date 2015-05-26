@@ -80,10 +80,11 @@ object MyList {
       import Runtime._
       implicit val main = prog.addMain()
 
-      val lhs = main.append(Call(string_create, List(Bitcast(TPointer(TChar), Const("Hallo")))))
-      val rhs = main.append(Call(string_create, List(Bitcast(TPointer(TChar), Const("Mallo")))))
       main append (
-        Call(string_equals, List(lhs, rhs)) +>
+        Call(string_equals, List(
+          Bitcast(TString, Const("Hello World")),
+          Bitcast(TString, Const("Wello Horld"))
+        )) +>
         (id => CallVoid(println_bool, List(id) ) ) ::
         Ret(Const(1))
       )

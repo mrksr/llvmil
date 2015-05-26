@@ -15,7 +15,7 @@ private[llvmil] class StringPool extends ConstantPool {
   private var nextIndex: Int = 0
 
   def string(const: String): Identifier = strings.getOrElse(const, {
-    val tpe = TPointer(TArray(StringPool.normalize(const).length + 1, TChar))
+    val tpe = TPointer(TStruct(None, List(TInt, TArray(StringPool.normalize(const).length + 1, TChar))))
     val vlue = Global(tpe, "%s%d".format(prefix,nextIndex))
     nextIndex += 1
     strings += (const -> vlue)

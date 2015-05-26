@@ -19,8 +19,8 @@ object ILPrinter {
     prog.sp.allStrings.map({
       case (string, identifier) =>
         val ascii = StringPool.normalize(string)
-        "%s = internal constant [%d x i8] c\"%s\\00\"".format(
-          identifier.name, ascii.length + 1, ascii
+        "%s = internal constant { i32, [%d x i8] } { i32 %d, [%d x i8] c\"%s\\00\" }".format(
+          identifier.name, ascii.length + 1, ascii.length, ascii.length + 1, ascii
         )
     }).toStream
   }

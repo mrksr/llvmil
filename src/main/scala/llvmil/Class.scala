@@ -81,7 +81,7 @@ class Class private[llvmil]( val className: String,
     val vTableField = TPointer(vTableType)
 
     TStruct(
-      "%s%s".format(Prefixes.classType, className),
+      Some("%s%s".format(Prefixes.classType, className)),
       vTableField :: allFields.map(_._1)
     )
   }
