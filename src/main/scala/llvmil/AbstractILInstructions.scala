@@ -40,8 +40,7 @@ object AbstractILInstructions {
       val vtGlobal = "%s%s".format(Prefixes.vtable, cls.className)
 
       val vtStore =
-        Bitcast(TPointer(cls.classType), Local(TThis, "this")) ++
-        ( GetElementPtr( _, List(Const(0), Const(0))) ) +>
+        GetElementPtr(withType, List(Const(0), Const(0))) +>
         ( Store(Global(TPointer(cls.vTableType), vtGlobal), _) )
 
       castLis.map(_(ctx)).flatten ::: vtStore(ctx.nameGen).map(_(ctx)).flatten
