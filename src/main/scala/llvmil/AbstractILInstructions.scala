@@ -5,33 +5,15 @@ import ILInstructions._
 import scala.language.implicitConversions
 
 object AbstractILInstructions {
-  private def resolveReferenceThis(obj: Identifier, ctx: Context) = {
-      val className = obj match {
-        case This => ctx.cls.get.className
-        case _ => obj.retType match {
-          case TReference(cn) => cn
-          case _ => sys.error("Can only derive class from References and This.")
-        }
-      }
-
-      val cls = ctx.prog.classes(className)
-      val ptrType = TPointer(cls.classType)
-
-      val (castLis, withType) = obj match {
-        case Local(_, nme) => (Nil, Local(ptrType, nme))
-        case Global(_, nme) => (Nil, Global(ptrType, nme))
-        case This => Bitcast(ptrType, Local(TThis, "this"))(ctx.nameGen)
-
-        case _ => sys.error("Can only access Fields of References and This.")
-      }
-
-      (cls, castLis, withType)
-  }
-
   case class Context(prog: Program, cls: Option[Class], fnc: Function, nameGen: () => String)
+
   trait AbstractILInstruction {
     def apply(ctx: Context): List[ILInstruction]
   }
+  abstract class AbstractILOperation(val retType: Type) {
+    def apply(to: Identifier): AbstractILInstruction
+  }
+
   case class AbstractAssign(to: Identifier, rhs: AbstractILOperation) extends AbstractILInstruction {
     def apply(ctx: Context): List[ILInstruction] = rhs(to)(ctx)
   }
@@ -48,9 +30,6 @@ object AbstractILInstructions {
     }
   }
 
-  abstract class AbstractILOperation(val retType: Type) {
-    def apply(to: Identifier): AbstractILInstruction
-  }
   case class AccessField(
     obj: Identifier, name: String, tpe: Type
   ) extends AbstractILOperation(TPointer(tpe)) {
@@ -116,6 +95,29 @@ object AbstractILInstructions {
 
       lookup(ctx.nameGen).map(_(ctx)).flatten
     }
+  }
+
+  private def resolveReferenceThis(obj: Identifier, ctx: Context) = {
+      val className = obj match {
+        case This => ctx.cls.get.className
+        case _ => obj.retType match {
+          case TReference(cn) => cn
+          case _ => sys.error("Can only derive class from References and This.")
+        }
+      }
+
+      val cls = ctx.prog.classes(className)
+      val ptrType = TPointer(cls.classType)
+
+      val (castLis, withType) = obj match {
+        case Local(_, nme) => (Nil, Local(ptrType, nme))
+        case Global(_, nme) => (Nil, Global(ptrType, nme))
+        case This => Bitcast(ptrType, Local(TThis, "this"))(ctx.nameGen)
+
+        case _ => sys.error("Can only access Fields of References and This.")
+      }
+
+      (cls, castLis, withType)
   }
 
   type OpenILOperationPipeline = (() => String) => (List[AbstractILInstruction], Identifier)
