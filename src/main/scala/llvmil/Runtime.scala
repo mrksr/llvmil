@@ -4,6 +4,12 @@ import Types._
 import ILInstructions._
 
 object Runtime {
+  val kool_alloc =
+    Global(TPointer(TFunction(List(TInt), TPointer(TChar))), "kool_alloc")
+
+  val string_fromint =
+    Global(TPointer(TFunction(List(TInt), TString)), "string_fromint")
+
   val string_alloc =
     Global(TPointer(TFunction(List(TInt), TString)), "string_alloc")
 
@@ -29,6 +35,8 @@ object Runtime {
     Global(TPointer(TFunction(List(TBool), TVoid)), "println_bool")
 
   val allRuntimeFunctions = List(
+    kool_alloc,
+    string_fromint,
     string_alloc,
     string_create,
     string_concat,
