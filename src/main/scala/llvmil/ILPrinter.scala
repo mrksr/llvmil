@@ -101,9 +101,9 @@ object ILPrinter {
     case Ret(id) =>
       "ret %s".format(identifier(id))
     case Br(dest) =>
-      "br label %s".format(dest)
+      "br label %%%s".format(dest)
     case BrCond(cond, iftrue, iffalse) =>
-      "br %s, label %s, label %s".format(identifier(cond), iftrue, iffalse)
+      "br %s, label %%%s, label %%%s".format(identifier(cond), iftrue, iffalse)
 
     case Store(value, to) =>
       "store %s, %s".format(identifier(value), identifier(to))
