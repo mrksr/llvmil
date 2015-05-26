@@ -45,7 +45,7 @@ object ILInstructions {
   case class Add(lhs: Identifier, rhs: Identifier) extends ILOperation(lhs.retType)
   case class Sub(lhs: Identifier, rhs: Identifier) extends ILOperation(lhs.retType)
   case class Mul(lhs: Identifier, rhs: Identifier) extends ILOperation(lhs.retType)
-  case class Div(lhs: Identifier, rhs: Identifier) extends ILOperation(lhs.retType)
+  case class SDiv(lhs: Identifier, rhs: Identifier) extends ILOperation(lhs.retType)
 
   // Comparisons
   object Comparisons {

@@ -149,7 +149,7 @@ object ILPrinter {
       case Mul(lhs, rhs) =>
         "mul %s %s, %s".format(to.retType.toIL, lhs.name, rhs.name)
 
-      case Div(lhs, rhs) =>
+      case SDiv(lhs, rhs) =>
         "sdiv %s %s, %s".format(to.retType.toIL, lhs.name, rhs.name)
 
       case Icmp(op, lhs, rhs) =>
