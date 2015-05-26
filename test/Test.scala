@@ -2,6 +2,7 @@ import llvmil._
 import llvmil.Types._
 import llvmil.ILInstructions._
 import llvmil.AbstractILInstructions._
+import llvmil.OperationChains._
 
 object Test {
   def main(args: Array[String]): Unit = {

@@ -1,8 +1,9 @@
 package llvmil
 
 import Types._
-import AbstractILInstructions._
 import ILInstructions._
+import AbstractILInstructions._
+import OperationChains._
 
 import scala.collection.mutable
 
