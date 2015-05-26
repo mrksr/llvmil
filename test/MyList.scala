@@ -70,7 +70,7 @@ object MyList {
       mtd append (
         AccessField(This, "Next", TReference("MyIntList")) ++
         ( Load(_) ) ++
-        ( VirtualResolve(_, "getVal", List(), TInt) ) ++
+        ( VirtualResolve(_, "getVal", Nil, TInt) ) ++
         ( Call(_, List(This)) ) +>
         ( Ret(_) )
       )

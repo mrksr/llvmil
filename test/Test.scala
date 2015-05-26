@@ -25,7 +25,7 @@ object Test {
     mtd append (
       Alloca(TArray(5, TBool)) ++
       ( AccessArray(_, Const(3)) ) +>
-      ( arr => Assign(Local(TBool, "Penisfuerst"), Add(arr, Const(2))) )
+      ( arr => Assign(Local(TBool, "arrayElement"), Add(arr, Const(2))) )
     )
 
     val rslv = mtd append (
