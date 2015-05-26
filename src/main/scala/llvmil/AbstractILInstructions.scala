@@ -18,6 +18,7 @@ object AbstractILInstructions {
   case class AbstractAssign(to: Identifier, rhs: AbstractILOperation) extends AbstractILInstruction {
     def apply(ctx: Context): List[ILInstruction] = rhs(to)(ctx)
   }
+
   case class SetVptr(of: Identifier) extends AbstractILInstruction {
     def apply(ctx: Context): List[ILInstruction] = {
       val (cls, castLis, withType) = resolveReferenceThis(of, ctx)
