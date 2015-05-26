@@ -3,7 +3,6 @@ package llvmil
 import Types._
 import ILInstructions._
 import OperationChains._
-import scala.language.implicitConversions
 
 object AbstractILInstructions {
   case class Context(prog: Program, cls: Option[Class], fnc: Function, nameGen: () => String)
