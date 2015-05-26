@@ -6,11 +6,12 @@ import scala.language.implicitConversions
 
 object AbstractILInstructions {
   private def resolveReferenceThis(obj: Identifier, ctx: Context) = {
-      val className = obj.retType match {
-        case TReference(cn) => cn
-        case TThis => ctx.cls.get.className
-
-        case _ => sys.error("Can only derive class from References and This.")
+      val className = obj match {
+        case This => ctx.cls.get.className
+        case _ => obj.retType match {
+          case TReference(cn) => cn
+          case _ => sys.error("Can only derive class from References and This.")
+        }
       }
 
       val cls = ctx.prog.classes(className)
