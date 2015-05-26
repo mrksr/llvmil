@@ -1,7 +1,7 @@
 import llvmil._
 import llvmil.Types._
 import llvmil.ILInstructions._
-import llvmil.AbstractILInstructions._
+import llvmil.AbstractILInstructions.OOP._
 import llvmil.OperationChains._
 
 object MyList {
