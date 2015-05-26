@@ -36,7 +36,7 @@ class Class private[llvmil]( val className: String,
     val parentMethods = parentName.map(prog.classes).map(_.vTable).getOrElse(Nil)
 
     // NOTE(mrksr): This abomination finds out where in the vTable to put overriding functions.
-    val (withOverrides, leftovers) = 
+    val (withOverrides, leftovers) =
       (parentMethods :\ (List[(String, Function)](), overriding.toSet)) {
         case ((cls, mtd), (acc, ovrs)) =>
           ovrs.find( ovr => {
@@ -62,7 +62,7 @@ class Class private[llvmil]( val className: String,
     TVTable(
       className,
       tpe(vTable.length),
-      vTable.map({ case(cls, fnc) => 
+      vTable.map({ case(cls, fnc) =>
           Bitcast(
             TPointer(TFunction(List(TVariadic), TVoid)),
             Global(TPointer(fnc.functionType), mangled(cls, fnc.name)))
