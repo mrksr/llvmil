@@ -24,6 +24,9 @@ class Function private[llvmil]( val name: String,
     val ils = ilGen(() => getFreshName())
     abstractILs ++= ils
   }
+  def append(il: AbstractILOperation): Identifier = {
+    append(singleAbsOpToChain(il))
+  }
   def append(il: AbstractILInstruction): Unit = {
     abstractILs += il
   }
