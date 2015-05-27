@@ -53,7 +53,7 @@ object AbstractILInstructions {
       arr: Identifier, index: Identifier
     ) extends AbstractILOperation({
       val TPointer(TArray(_, tpe)) = arr.retType
-      tpe
+      TPointer(tpe)
     }) {
       def apply(to: Identifier): AbstractILInstruction = (ctx: Context) => {
         val access =
